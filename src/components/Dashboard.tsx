@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { ProductForm, type Product } from "./ProductForm";
 import { ProductList } from "./ProductList";
-import { LogOut, Sparkles } from "lucide-react";
+import { LogOut, Sparkles, LayoutGrid } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "@tanstack/react-router";
 
 export function Dashboard() {
   const { user, logout } = useAuth();
@@ -22,15 +23,23 @@ export function Dashboard() {
               <p className="text-[11px] text-slate-500 dark:text-slate-400">{user?.email}</p>
             </div>
           </div>
-          <button
-            onClick={async () => {
-              await logout();
-              toast.success("Sesión cerrada");
-            }}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
-          >
-            <LogOut className="h-3.5 w-3.5" /> Salir
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/catalogo"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-fuchsia-500 px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-fuchsia-500/30 hover:opacity-90 transition"
+            >
+              <LayoutGrid className="h-3.5 w-3.5" /> Ver catálogo
+            </Link>
+            <button
+              onClick={async () => {
+                await logout();
+                toast.success("Sesión cerrada");
+              }}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+            >
+              <LogOut className="h-3.5 w-3.5" /> Salir
+            </button>
+          </div>
         </div>
       </header>
 

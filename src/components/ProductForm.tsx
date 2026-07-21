@@ -5,17 +5,24 @@ import { toast } from "sonner";
 import { Loader2, Plus, Save, X } from "lucide-react";
 
 export type ProductInput = {
-  product_name: string;
+  name: string;
   price: number;
-  stock: number;
   category: string;
   image_url?: string;
   description?: string;
 };
 
-export type Product = ProductInput & { id: string; created_at?: unknown };
+export type Product = ProductInput & {
+  id: string;
+  created_at?: unknown;
+  // compatibilidad con productos antiguos de la app Flutter
+  product_name?: string;
+  imageName?: string;
+  imageURL?: string;
+  stock?: number;
+};
 
-const CATEGORIES = ["Electrónica", "Ropa", "Hogar", "Alimentos", "Deportes", "Libros", "Otros"];
+const CATEGORIES = ["iPhone", "iPad", "Mac", "Apple Watch", "Accesorios", "Otros"];
 
 export function ProductForm({
   editing,
@@ -25,9 +32,8 @@ export function ProductForm({
   onDone: () => void;
 }) {
   const [form, setForm] = useState<ProductInput>({
-    product_name: "",
+    name: "",
     price: 0,
-    stock: 0,
     category: CATEGORIES[0],
     image_url: "",
     description: "",
@@ -37,15 +43,14 @@ export function ProductForm({
   useEffect(() => {
     if (editing) {
       setForm({
-        product_name: editing.product_name,
+        name: editing.name || editing.product_name || "",
         price: editing.price,
-        stock: editing.stock,
         category: editing.category,
-        image_url: editing.image_url || "",
+        image_url: editing.image_url || editing.imageURL || "",
         description: editing.description || "",
       });
     } else {
-      setForm({ product_name: "", price: 0, stock: 0, category: CATEGORIES[0], image_url: "", description: "" });
+      setForm({ name: "", price: 0, category: CATEGORIES[0], image_url: "", description: "" });
     }
   }, [editing]);
 
@@ -56,9 +61,8 @@ export function ProductForm({
     setSaving(true);
     try {
       const payload = {
-        product_name: form.product_name.trim(),
+        name: form.name.trim(),
         price: Number(form.price),
-        stock: Number(form.stock),
         category: form.category,
         image_url: form.image_url?.trim() || "",
         description: form.description?.trim() || "",
@@ -107,10 +111,10 @@ export function ProductForm({
         <Field label="Nombre del producto" className="md:col-span-2">
           <input
             required
-            value={form.product_name}
-            onChange={(e) => setForm({ ...form, product_name: e.target.value })}
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
             className={inputCls}
-            placeholder="Ej. Auriculares inalámbricos"
+            placeholder="Ej. iPhone 13 Pro"
           />
         </Field>
         <Field label="Precio">
@@ -121,16 +125,6 @@ export function ProductForm({
             min="0"
             value={form.price}
             onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
-            className={inputCls}
-          />
-        </Field>
-        <Field label="Stock">
-          <input
-            required
-            type="number"
-            min="0"
-            value={form.stock}
-            onChange={(e) => setForm({ ...form, stock: Number(e.target.value) })}
             className={inputCls}
           />
         </Field>
@@ -145,7 +139,7 @@ export function ProductForm({
             ))}
           </select>
         </Field>
-        <Field label="URL de imagen (opcional)">
+        <Field label="URL de imagen (opcional)" className="md:col-span-2">
           <input
             type="url"
             value={form.image_url}
