@@ -5,8 +5,8 @@ import { LogIn, Loader2, ShieldCheck } from "lucide-react";
 
 export function LoginScreen() {
   const { signIn } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("joshuarojas432@gmail.com");
+  const [password, setPassword] = useState("tesis2026");
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {

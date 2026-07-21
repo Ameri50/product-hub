@@ -2,14 +2,13 @@ import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import { getFirestore, type Firestore } from "firebase/firestore";
 import { getAuth, type Auth } from "firebase/auth";
 
-// Reemplaza estos valores con tu config real de Firebase.
 export const firebaseConfig = {
-  apiKey: "TU_API_KEY",
+  apiKey: "AIzaSyCn9yWVnz2l-_A41ombelQmXDyA9MC0Lvk",
   authDomain: "miapp-4a216.firebaseapp.com",
   projectId: "miapp-4a216",
-  storageBucket: "miapp-4a216.appspot.com",
-  messagingSenderId: "TU_SENDER_ID",
-  appId: "TU_APP_ID",
+  storageBucket: "miapp-4a216.firebasestorage.app",
+  messagingSenderId: "553513944411",
+  appId: "1:553513944411:web:c4b3592357220c9f63c67e",
 };
 
 let _app: FirebaseApp | null = null;
