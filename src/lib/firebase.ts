@@ -17,7 +17,6 @@ let _auth: Auth | null = null;
 
 export function getFirebase() {
   if (typeof window === "undefined") {
-    // Firebase Auth usa IndexedDB; solo inicializar en el navegador.
     return { app: null, db: null, auth: null } as {
       app: FirebaseApp | null;
       db: Firestore | null;
