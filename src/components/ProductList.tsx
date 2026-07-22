@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { collection, deleteDoc, doc, onSnapshot } from "firebase/firestore";
 import { getFirebase } from "@/lib/firebase";
 import { matchesProductSearch, normalizeProductData, type Product } from "./ProductForm";
@@ -9,7 +9,6 @@ import { dispatchProductRemoved, removeProductInList, upsertProductInList } from
 export function ProductList({ onEdit, searchTerm = "" }: { onEdit: (p: Product) => void; searchTerm?: string }) {
   const [products, setProducts] = useState<Product[] | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const deferredSearchTerm = useDeferredValue(searchTerm);
 
   useEffect(() => {
     const { db } = getFirebase();
@@ -83,8 +82,8 @@ export function ProductList({ onEdit, searchTerm = "" }: { onEdit: (p: Product) 
   }
 
   const filteredProducts = useMemo(() => {
-    return (products ?? []).filter((p) => matchesProductSearch(p, deferredSearchTerm));
-  }, [deferredSearchTerm, products]);
+    return (products ?? []).filter((p) => matchesProductSearch(p, searchTerm));
+  }, [products, searchTerm]);
 
   if (filteredProducts.length === 0) {
     return (
@@ -143,7 +142,7 @@ export function ProductList({ onEdit, searchTerm = "" }: { onEdit: (p: Product) 
                   <div className="mt-1 flex flex-wrap gap-1">
                     {colorOptions.slice(0, 3).map((c, i) => (
                       <div
-                        key={i}
+                        key={`${c.name || "color"}-${c.hexColor || "#000"}-${i}`}
                         className="inline-flex items-center gap-1 rounded-full border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/60 px-2 py-0.5"
                         title={c.name}
                       >
@@ -166,7 +165,7 @@ export function ProductList({ onEdit, searchTerm = "" }: { onEdit: (p: Product) 
                   <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">Gigas</p>
                   <div className="mt-1 flex flex-wrap gap-1">
                     {storageOptions.slice(0, 3).map((storage, i) => (
-                      <span key={i} className="rounded-full border border-fuchsia-200 dark:border-fuchsia-500/20 bg-fuchsia-50 dark:bg-fuchsia-500/10 px-2 py-0.5 text-[10px] text-fuchsia-700 dark:text-fuchsia-300">
+                      <span key={`${storage.capacity || "storage"}-${storage.priceMultiplier || 1}-${i}`} className="rounded-full border border-fuchsia-200 dark:border-fuchsia-500/20 bg-fuchsia-50 dark:bg-fuchsia-500/10 px-2 py-0.5 text-[10px] text-fuchsia-700 dark:text-fuchsia-300">
                         {storage.capacity}
                       </span>
                     ))}

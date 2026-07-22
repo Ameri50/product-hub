@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { getFirebase } from "@/lib/firebase";
 import { matchesProductSearch, normalizeProductData, type Product } from "@/components/ProductForm";
@@ -13,7 +13,6 @@ function CatalogoPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("Todas");
-  const deferredSearch = useDeferredValue(search);
 
   useEffect(() => {
     const { db } = getFirebase();
@@ -36,11 +35,11 @@ function CatalogoPage() {
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
-      const matchesSearch = matchesProductSearch(p, deferredSearch);
+      const matchesSearch = matchesProductSearch(p, search);
       const matchesCategory = categoryFilter === "Todas" || p.category === categoryFilter;
       return matchesSearch && matchesCategory;
     });
-  }, [categoryFilter, deferredSearch, products]);
+  }, [categoryFilter, products, search]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-950 to-fuchsia-950 px-4 py-10">
