@@ -8,7 +8,7 @@ import { h as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { n as toast } from "../_libs/sonner.mjs";
 import { _ as Boxes, d as LogOut, g as DatabaseZap, h as ImageOff, i as Sparkles, l as Pencil, m as LayoutGrid, n as Trash2, o as Search, p as LoaderCircle, r as Tag, u as Package } from "../_libs/lucide-react.mjs";
 import { a as removeProductInList, i as normalizeProductData, n as dispatchProductRemoved, o as upsertProductInList, r as matchesProductSearch, t as ProductForm } from "./ProductForm-BfGZTqwy.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/Dashboard-CFMaXlYX.js
+//#region node_modules/.nitro/vite/services/ssr/assets/Dashboard-Cxi7lUFS.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function ProductList({ onEdit, searchTerm = "" }) {
@@ -29,7 +29,7 @@ function ProductList({ onEdit, searchTerm = "" }) {
 			toast.error("Error al cargar productos: " + err.message);
 			setProducts([]);
 		});
-		const handleExternalProductChange = ((event) => {
+		const handleExternalProductChange = (event) => {
 			const detail = event.detail;
 			if (!detail) return;
 			setProducts((current) => {
@@ -38,7 +38,7 @@ function ProductList({ onEdit, searchTerm = "" }) {
 				if (detail.type === "remove" && detail.productId) return removeProductInList(current, detail.productId);
 				return current;
 			});
-		});
+		};
 		window.addEventListener("products-updated", handleExternalProductChange);
 		return () => {
 			window.removeEventListener("products-updated", handleExternalProductChange);
@@ -60,13 +60,13 @@ function ProductList({ onEdit, searchTerm = "" }) {
 			setDeleting(null);
 		}
 	};
+	const filteredProducts = (0, import_react.useMemo)(() => {
+		return (products ?? []).filter((p) => matchesProductSearch(p, searchTerm));
+	}, [products, searchTerm]);
 	if (products === null) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 		className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4",
 		children: Array.from({ length: 4 }).map((_, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "animate-pulse rounded-2xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-slate-900/60 h-80" }, i))
 	});
-	const filteredProducts = (0, import_react.useMemo)(() => {
-		return (products ?? []).filter((p) => matchesProductSearch(p, searchTerm));
-	}, [products, searchTerm]);
 	if (filteredProducts.length === 0) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "rounded-2xl border border-dashed border-slate-300 dark:border-white/10 p-12 text-center",
 		children: [
@@ -96,7 +96,9 @@ function ProductList({ onEdit, searchTerm = "" }) {
 						src: imageSrc,
 						alt: p.name,
 						className: "h-full w-full object-cover transition duration-500 group-hover:scale-105",
-						onError: (e) => e.currentTarget.style.display = "none"
+						onError: (e) => {
+							e.currentTarget.style.display = "none";
+						}
 					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 						className: "flex h-full w-full items-center justify-center text-slate-400",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ImageOff, { className: "h-8 w-8" })
