@@ -3,13 +3,14 @@ import { useAuth } from "@/lib/auth-context";
 import { ProductForm, type Product } from "./ProductForm";
 import { ProductList } from "./ProductList";
 import { SeedCatalogButton } from "./SeedCatalogButton";
-import { LogOut, Sparkles, LayoutGrid } from "lucide-react";
+import { LogOut, Sparkles, LayoutGrid, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 
 export function Dashboard() {
   const { user, logout } = useAuth();
   const [editing, setEditing] = useState<Product | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/40 to-fuchsia-50/40 dark:from-slate-950 dark:via-indigo-950/40 dark:to-fuchsia-950/40">
@@ -49,11 +50,22 @@ export function Dashboard() {
           <ProductForm editing={editing} onDone={() => setEditing(null)} />
         </section>
         <section>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Productos</h2>
-            <SeedCatalogButton />
+            <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+              <label className="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-slate-900/70 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 shadow-sm">
+                <Search className="h-4 w-4 text-slate-400" />
+                <input
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Buscar producto..."
+                  className="w-full sm:w-56 bg-transparent outline-none placeholder:text-slate-400"
+                />
+              </label>
+              <SeedCatalogButton />
+            </div>
           </div>
-          <ProductList onEdit={setEditing} />
+          <ProductList onEdit={setEditing} searchTerm={searchTerm} />
         </section>
       </main>
     </div>

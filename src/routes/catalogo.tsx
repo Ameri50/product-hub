@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { getFirebase } from "@/lib/firebase";
-import type { Product } from "@/components/ProductForm";
+import { matchesProductSearch, normalizeProductData, type Product } from "@/components/ProductForm";
 
 export const Route = createFileRoute("/catalogo")({
   component: CatalogoPage,
@@ -13,25 +13,34 @@ function CatalogoPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("Todas");
+  const deferredSearch = useDeferredValue(search);
 
   useEffect(() => {
     const { db } = getFirebase();
     if (!db) return;
     const unsub = onSnapshot(collection(db, "products"), (snap) => {
-      const items = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Product));
+      const items = snap.docs.map((d) => {
+        const raw = { id: d.id, ...(d.data() as Omit<Product, "id">) } as Product;
+        return normalizeProductData(raw);
+      });
       setProducts(items);
       setLoading(false);
     });
     return unsub;
   }, []);
 
-  const categories = ["Todas", ...Array.from(new Set(products.map((p) => p.category).filter(Boolean)))] as string[];
+  const categories = useMemo(
+    () => ["Todas", ...Array.from(new Set(products.map((p) => p.category).filter(Boolean)))],
+    [products],
+  ) as string[];
 
-  const filtered = products.filter((p) => {
-    const matchesSearch = p.name?.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = categoryFilter === "Todas" || p.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
+  const filtered = useMemo(() => {
+    return products.filter((p) => {
+      const matchesSearch = matchesProductSearch(p, deferredSearch);
+      const matchesCategory = categoryFilter === "Todas" || p.category === categoryFilter;
+      return matchesSearch && matchesCategory;
+    });
+  }, [categoryFilter, deferredSearch, products]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-950 to-fuchsia-950 px-4 py-10">
@@ -82,7 +91,11 @@ function CatalogoPage() {
           <p className="text-slate-400 text-center py-20">No se encontraron productos.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filtered.map((p) => (
+            {filtered.map((p) => {
+              const description = p.description ?? (p as Product & { biography?: string }).biography ?? "";
+              const colorOptions = (p.colorOptions ?? (p as Product & { colors?: typeof p.colorOptions }).colors ?? (p as Product & { color_options?: typeof p.colorOptions }).color_options ?? []) as Array<{ name: string; hexColor: string }>;
+              const storageOptions = (p.storageOptions ?? (p as Product & { storages?: typeof p.storageOptions }).storages ?? (p as Product & { storage_options?: typeof p.storageOptions }).storage_options ?? []) as Array<{ capacity: string; priceMultiplier: number }>;
+              return (
               <Link
                 key={p.id}
                 to="/catalogo/$productId"
@@ -107,27 +120,36 @@ function CatalogoPage() {
                   <h3 className="text-white font-semibold group-hover:text-fuchsia-400 transition line-clamp-2">
                     {p.name}
                   </h3>
-                  {p.description && (
-                    <p className="text-xs text-slate-400 mt-1 line-clamp-1">{p.description}</p>
+                  {description && (
+                    <p className="text-xs text-slate-400 mt-1 line-clamp-2">{description}</p>
                   )}
                   <div className="flex items-center justify-between mt-3">
                     <span className="text-lg font-bold text-fuchsia-400">S/ {Number(p.price).toFixed(2)}</span>
                     <span className="text-xs text-slate-400">Stock: {p.stock}</span>
                   </div>
-                  {/* Indicadores de opciones */}
-                  {p.colorOptions && p.colorOptions.length > 0 && (
-                    <div className="mt-2 text-xs text-slate-400">
-                      {p.colorOptions.length} color{p.colorOptions.length > 1 ? "es" : ""}
+                  {colorOptions.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {colorOptions.slice(0, 3).map((color, index) => (
+                        <span key={`${color.name}-${index}`} className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-slate-300">
+                          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color.hexColor }} />
+                          {color.name}
+                        </span>
+                      ))}
                     </div>
                   )}
-                  {p.storageOptions && p.storageOptions.length > 0 && (
-                    <div className="text-xs text-slate-400">
-                      {p.storageOptions.length} capacidad{p.storageOptions.length > 1 ? "es" : ""}
+                  {storageOptions.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {storageOptions.slice(0, 3).map((storage, index) => (
+                        <span key={`${storage.capacity}-${index}`} className="rounded-full border border-fuchsia-400/20 bg-fuchsia-500/10 px-2 py-0.5 text-[10px] text-fuchsia-200">
+                          {storage.capacity}
+                        </span>
+                      ))}
                     </div>
                   )}
                 </div>
               </Link>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

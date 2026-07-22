@@ -3,6 +3,7 @@ import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/fi
 import { getFirebase } from "@/lib/firebase";
 import { toast } from "sonner";
 import { Loader2, Plus, Save, X, Trash2 } from "lucide-react";
+import { dispatchProductChanged } from "@/lib/product-sync";
 
 // ---------------------------------------------------------------------------
 // Tipos — deben calzar 1:1 con lo que lee ProductStore.swift.parseProduct(),
@@ -25,9 +26,14 @@ export type ProductInput = {
   category: string;
   image_url?: string;
   description?: string;
+  biography?: string;
   stock?: number;
   colorOptions?: ColorOption[];
+  colors?: ColorOption[];
+  color_options?: ColorOption[];
   storageOptions?: StorageOption[];
+  storages?: StorageOption[];
+  storage_options?: StorageOption[];
 };
 
 export type Product = ProductInput & {
@@ -38,6 +44,40 @@ export type Product = ProductInput & {
   imageName?: string;
   imageURL?: string;
 };
+
+export function normalizeProductData(product: Partial<Product> & Record<string, unknown>): Product {
+  const normalizedColors = (product.colorOptions ?? product.colors ?? product.color_options ?? []) as ColorOption[];
+  const normalizedStorages = (product.storageOptions ?? product.storages ?? product.storage_options ?? []) as StorageOption[];
+
+  return {
+    ...(product as Product),
+    name: product.name || product.product_name || "",
+    description: product.description || product.biography || "",
+    biography: product.biography || product.description || "",
+    colorOptions: normalizedColors,
+    colors: normalizedColors,
+    storageOptions: normalizedStorages,
+    storages: normalizedStorages,
+  } as Product;
+}
+
+export function matchesProductSearch(product: Partial<Product>, term: string) {
+  const normalizedTerm = term.trim().toLowerCase();
+  if (!normalizedTerm) return true;
+
+  const normalizedProduct = normalizeProductData(product as Partial<Product> & Record<string, unknown>);
+  const searchableFields = [
+    normalizedProduct.name,
+    normalizedProduct.category,
+    normalizedProduct.description,
+    normalizedProduct.biography,
+    normalizedProduct.price?.toString(),
+    ...(normalizedProduct.colorOptions || []).map((color) => `${color.name} ${color.hexColor}`),
+    ...(normalizedProduct.storageOptions || []).map((storage) => `${storage.capacity} ${storage.priceMultiplier}`),
+  ];
+
+  return searchableFields.some((field) => field?.toLowerCase().includes(normalizedTerm));
+}
 
 // Mismas categorías que usa la app (HomeView.swift / CategoryView.swift)
 const CATEGORIES = ["iPhone", "iPad", "Mac", "Apple Watch", "AirPods", "TV y Casa", "Accesorios"];
@@ -65,16 +105,18 @@ export function ProductForm({
 
   useEffect(() => {
     if (editing) {
+      const normalized = normalizeProductData(editing);
+
       setForm({
-        name: editing.name || editing.product_name || "",
-        price: editing.price ?? 0,
-        category: editing.category || CATEGORIES[0],
+        name: normalized.name,
+        price: normalized.price ?? 0,
+        category: normalized.category || CATEGORIES[0],
         // ProductStore.swift lee "image_url" primero, luego "imageURL" como fallback
-        image_url: editing.image_url || editing.imageURL || editing.imageName || "",
-        description: editing.description || "",
-        stock: editing.stock ?? 50,
-        colorOptions: editing.colorOptions || [],
-        storageOptions: editing.storageOptions || [],
+        image_url: normalized.image_url || normalized.imageURL || normalized.imageName || "",
+        description: normalized.description || "",
+        stock: normalized.stock ?? 50,
+        colorOptions: normalized.colorOptions || [],
+        storageOptions: normalized.storageOptions || [],
       });
     } else {
       setForm(emptyForm);
@@ -130,6 +172,10 @@ export function ProductForm({
       (c) => c.name.trim() !== "" && c.hexColor.trim() !== ""
     );
     const cleanStorages = (form.storageOptions || []).filter((s) => s.capacity.trim() !== "");
+    const normalizedStorages = cleanStorages.map((s) => ({
+      capacity: s.capacity.trim(),
+      priceMultiplier: Number(s.priceMultiplier) || 1,
+    }));
 
     setSaving(true);
     try {
@@ -139,19 +185,25 @@ export function ProductForm({
         category: form.category,
         image_url: form.image_url?.trim() || "",
         description: form.description?.trim() || "",
+        biography: form.description?.trim() || "",
         stock: Number(form.stock ?? 50),
         colorOptions: cleanColors,
-        storageOptions: cleanStorages.map((s) => ({
-          capacity: s.capacity.trim(),
-          priceMultiplier: Number(s.priceMultiplier) || 1,
-        })),
+        colors: cleanColors,
+        storageOptions: normalizedStorages,
+        storages: normalizedStorages,
       };
+      let savedProduct: Product | null = null;
       if (editing) {
         await updateDoc(doc(db, "products", editing.id), payload);
+        savedProduct = { ...editing, ...payload, id: editing.id } as Product;
         toast.success("Producto actualizado");
       } else {
-        await addDoc(collection(db, "products"), { ...payload, created_at: serverTimestamp() });
+        const ref = await addDoc(collection(db, "products"), { ...payload, created_at: serverTimestamp() });
+        savedProduct = { ...payload, id: ref.id } as Product;
         toast.success("Producto agregado");
+      }
+      if (savedProduct) {
+        dispatchProductChanged(savedProduct);
       }
       onDone();
     } catch (err) {
@@ -241,7 +293,7 @@ export function ProductForm({
             detalle del producto todavía no, hasta aplicar el patch de ProductDetailView.swift.
           </p>
         </Field>
-        <Field label="Descripción (opcional)" className="md:col-span-2">
+        <Field label="Biografía (opcional)" className="md:col-span-2">
           <textarea
             rows={3}
             value={form.description}
@@ -250,6 +302,66 @@ export function ProductForm({
             placeholder="Detalles del producto"
           />
         </Field>
+      </div>
+
+      <div className="mt-6 rounded-xl border border-slate-200/70 dark:border-white/10 bg-slate-50/70 dark:bg-slate-950/40 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+            Vista previa del producto
+          </span>
+          <button
+            type="button"
+            onClick={addColor}
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-fuchsia-600 dark:text-fuchsia-400"
+          >
+            <Plus className="h-3.5 w-3.5" /> Añadir color
+          </button>
+        </div>
+        <div className="space-y-3">
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">Biografía</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">{form.description?.trim() || "Sin biografía aún"}</p>
+          </div>
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">Colores</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(form.colorOptions || []).length === 0 ? (
+                <span className="text-xs text-slate-400">Sin colores</span>
+              ) : (
+                form.colorOptions?.map((color, index) => (
+                  <button
+                    key={`${color.name}-${index}`}
+                    type="button"
+                    onClick={() => updateColor(index, { name: color.name, hexColor: color.hexColor })}
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-2.5 py-1 text-xs text-slate-600 dark:text-slate-300"
+                  >
+                    <span className="h-3 w-3 rounded-full border border-slate-300 dark:border-white/20" style={{ backgroundColor: color.hexColor }} />
+                    {color.name || "Sin nombre"}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">Gigas</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(form.storageOptions || []).length === 0 ? (
+                <span className="text-xs text-slate-400">Sin capacidades</span>
+              ) : (
+                form.storageOptions?.map((storage, index) => (
+                  <button
+                    key={`${storage.capacity}-${index}`}
+                    type="button"
+                    onClick={() => updateStorage(index, { capacity: storage.capacity, priceMultiplier: storage.priceMultiplier })}
+                    className="rounded-full border border-fuchsia-200 dark:border-fuchsia-500/20 bg-fuchsia-50 dark:bg-fuchsia-500/10 px-2.5 py-1 text-xs text-fuchsia-700 dark:text-fuchsia-300"
+                  >
+                    {storage.capacity || "Sin capacidad"}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Colores */}

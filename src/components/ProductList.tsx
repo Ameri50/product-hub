@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { collection, deleteDoc, doc, onSnapshot } from "firebase/firestore";
 import { getFirebase } from "@/lib/firebase";
-import type { Product } from "./ProductForm";
+import { matchesProductSearch, normalizeProductData, type Product } from "./ProductForm";
 import { toast } from "sonner";
 import { Package, Pencil, Trash2, ImageOff, Tag, Boxes, Palette, Database } from "lucide-react";
+import { dispatchProductRemoved, removeProductInList, upsertProductInList } from "@/lib/product-sync";
 
-export function ProductList({ onEdit }: { onEdit: (p: Product) => void }) {
+export function ProductList({ onEdit, searchTerm = "" }: { onEdit: (p: Product) => void; searchTerm?: string }) {
   const [products, setProducts] = useState<Product[] | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const deferredSearchTerm = useDeferredValue(searchTerm);
 
   useEffect(() => {
     const { db } = getFirebase();
@@ -15,14 +17,40 @@ export function ProductList({ onEdit }: { onEdit: (p: Product) => void }) {
     const unsub = onSnapshot(
       collection(db, "products"),
       (snap) => {
-        setProducts(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Product, "id">) })));
+        const items = snap.docs.map((d) => {
+          const raw = { id: d.id, ...(d.data() as Omit<Product, "id">) } as Product;
+          return normalizeProductData(raw);
+        });
+        setProducts(items);
       },
       (err) => {
         toast.error("Error al cargar productos: " + err.message);
         setProducts([]);
       },
     );
-    return unsub;
+
+    const handleExternalProductChange = ((event: Event) => {
+      const customEvent = event as CustomEvent<{ type: "upsert" | "remove"; product?: Product; productId?: string }>;
+      const detail = customEvent.detail;
+      if (!detail) return;
+
+      setProducts((current) => {
+        if (!current) return current;
+        if (detail.type === "upsert" && detail.product) {
+          return upsertProductInList(current, normalizeProductData(detail.product));
+        }
+        if (detail.type === "remove" && detail.productId) {
+          return removeProductInList(current, detail.productId);
+        }
+        return current;
+      });
+    }) as EventListener;
+
+    window.addEventListener("products-updated", handleExternalProductChange);
+    return () => {
+      window.removeEventListener("products-updated", handleExternalProductChange);
+      unsub();
+    };
   }, []);
 
   const remove = async (p: Product) => {
@@ -32,6 +60,7 @@ export function ProductList({ onEdit }: { onEdit: (p: Product) => void }) {
     setDeleting(p.id);
     try {
       await deleteDoc(doc(db, "products", p.id));
+      dispatchProductRemoved(p.id);
       toast.success("Producto eliminado");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al eliminar");
@@ -53,20 +82,27 @@ export function ProductList({ onEdit }: { onEdit: (p: Product) => void }) {
     );
   }
 
-  if (products.length === 0) {
+  const filteredProducts = useMemo(() => {
+    return (products ?? []).filter((p) => matchesProductSearch(p, deferredSearchTerm));
+  }, [deferredSearchTerm, products]);
+
+  if (filteredProducts.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-300 dark:border-white/10 p-12 text-center">
         <Package className="mx-auto h-10 w-10 text-slate-400" />
         <h3 className="mt-3 font-semibold text-slate-800 dark:text-white">Sin productos</h3>
-        <p className="mt-1 text-sm text-slate-500">Agrega tu primer producto usando el formulario.</p>
+        <p className="mt-1 text-sm text-slate-500">No hay productos que coincidan con la búsqueda.</p>
       </div>
     );
   }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {products.map((p) => {
+      {filteredProducts.map((p) => {
         const imageSrc = p.image_url;
+        const description = p.description ?? (p as Product & { biography?: string }).biography ?? "";
+        const colorOptions = (p.colorOptions ?? (p as Product & { colors?: typeof p.colorOptions }).colors ?? (p as Product & { color_options?: typeof p.colorOptions }).color_options ?? []) as Array<{ name: string; hexColor: string }>;
+        const storageOptions = (p.storageOptions ?? (p as Product & { storages?: typeof p.storageOptions }).storages ?? (p as Product & { storage_options?: typeof p.storageOptions }).storage_options ?? []) as Array<{ capacity: string; priceMultiplier: number }>;
         return (
           <article
             key={p.id}
@@ -94,35 +130,50 @@ export function ProductList({ onEdit }: { onEdit: (p: Product) => void }) {
             {/* Contenido */}
             <div className="p-4 flex-1 flex flex-col">
               <h3 className="font-semibold text-slate-900 dark:text-white truncate text-sm">{p.name}</h3>
-              {p.description && (
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{p.description}</p>
+              {description && (
+                <div className="mt-1">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">Biografía</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{description}</p>
+                </div>
               )}
 
-              {/* Opciones de color */}
-              {p.colorOptions && p.colorOptions.length > 0 && (
-                <div className="mt-3 flex items-center gap-1">
-                  <Palette className="h-3.5 w-3.5 text-slate-400" />
-                  <div className="flex gap-1">
-                    {p.colorOptions.slice(0, 3).map((c, i) => (
+              {colorOptions.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">Colores</p>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {colorOptions.slice(0, 3).map((c, i) => (
                       <div
                         key={i}
-                        className="h-4 w-4 rounded-full border border-slate-300 dark:border-white/20"
-                        style={{ backgroundColor: c.hexColor }}
+                        className="inline-flex items-center gap-1 rounded-full border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/60 px-2 py-0.5"
                         title={c.name}
-                      />
+                      >
+                        <div
+                          className="h-3 w-3 rounded-full border border-slate-300 dark:border-white/20"
+                          style={{ backgroundColor: c.hexColor }}
+                        />
+                        <span className="text-[10px] text-slate-600 dark:text-slate-300">{c.name}</span>
+                      </div>
                     ))}
-                    {p.colorOptions.length > 3 && (
-                      <span className="text-xs text-slate-500 ml-1">+{p.colorOptions.length - 3}</span>
+                    {colorOptions.length > 3 && (
+                      <span className="text-[10px] text-slate-500 ml-1">+{colorOptions.length - 3}</span>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Opciones de almacenamiento */}
-              {p.storageOptions && p.storageOptions.length > 0 && (
-                <div className="mt-2 flex items-center gap-1">
-                  <Database className="h-3.5 w-3.5 text-slate-400" />
-                  <span className="text-xs text-slate-500">{p.storageOptions.length} opciones</span>
+              {storageOptions.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">Gigas</p>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {storageOptions.slice(0, 3).map((storage, i) => (
+                      <span key={i} className="rounded-full border border-fuchsia-200 dark:border-fuchsia-500/20 bg-fuchsia-50 dark:bg-fuchsia-500/10 px-2 py-0.5 text-[10px] text-fuchsia-700 dark:text-fuchsia-300">
+                        {storage.capacity}
+                      </span>
+                    ))}
+                    {storageOptions.length > 3 && (
+                      <span className="text-[10px] text-slate-500 ml-1">+{storageOptions.length - 3}</span>
+                    )}
+                  </div>
                 </div>
               )}
 

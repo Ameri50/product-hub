@@ -42,9 +42,12 @@ export function SeedCatalogButton() {
             category: p.category,
             image_url: p.image_url,
             description: p.description,
+            biography: p.description,
             stock: p.stock,
             colorOptions: p.colorOptions,
+            colors: p.colorOptions,
             storageOptions: p.storageOptions,
+            storages: p.storageOptions,
             created_at: serverTimestamp(),
           });
         }
