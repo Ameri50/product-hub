@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { ProductForm, type Product } from "./ProductForm";
 import { ProductList } from "./ProductList";
+import { SeedCatalogButton } from "./SeedCatalogButton";
 import { LogOut, Sparkles, LayoutGrid } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
@@ -50,6 +51,7 @@ export function Dashboard() {
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Productos</h2>
+            <SeedCatalogButton />
           </div>
           <ProductList onEdit={setEditing} />
         </section>

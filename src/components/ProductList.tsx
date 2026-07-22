@@ -3,7 +3,7 @@ import { collection, deleteDoc, doc, onSnapshot } from "firebase/firestore";
 import { getFirebase } from "@/lib/firebase";
 import type { Product } from "./ProductForm";
 import { toast } from "sonner";
-import { Package, Pencil, Trash2, ImageOff, Tag, Boxes } from "lucide-react";
+import { Package, Pencil, Trash2, ImageOff, Tag, Boxes, Palette, Database } from "lucide-react";
 
 export function ProductList({ onEdit }: { onEdit: (p: Product) => void }) {
   const [products, setProducts] = useState<Product[] | null>(null);
@@ -26,7 +26,7 @@ export function ProductList({ onEdit }: { onEdit: (p: Product) => void }) {
   }, []);
 
   const remove = async (p: Product) => {
-    if (!confirm(`¿Eliminar "${p.product_name}"?`)) return;
+    if (!confirm(`¿Eliminar "${p.name}"?`)) return;
     const { db } = getFirebase();
     if (!db) return;
     setDeleting(p.id);
@@ -46,7 +46,7 @@ export function ProductList({ onEdit }: { onEdit: (p: Product) => void }) {
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="animate-pulse rounded-2xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-slate-900/60 h-72"
+            className="animate-pulse rounded-2xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-slate-900/60 h-80"
           />
         ))}
       </div>
@@ -66,17 +66,18 @@ export function ProductList({ onEdit }: { onEdit: (p: Product) => void }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {products.map((p) => {
-        const imageSrc = p.image_url || p.imageURL;
+        const imageSrc = p.image_url;
         return (
           <article
             key={p.id}
-            className="group relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-lg shadow-slate-200/40 dark:shadow-black/40 transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-fuchsia-500/10"
+            className="group relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-lg shadow-slate-200/40 dark:shadow-black/40 transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-fuchsia-500/10 flex flex-col"
           >
+            {/* Imagen */}
             <div className="aspect-video w-full bg-gradient-to-br from-indigo-100 to-fuchsia-100 dark:from-indigo-950/50 dark:to-fuchsia-950/50 relative overflow-hidden">
               {imageSrc ? (
                 <img
                   src={imageSrc}
-                  alt={p.product_name}
+                  alt={p.name}
                   className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                   onError={(e) => ((e.currentTarget.style.display = "none"))}
                 />
@@ -89,19 +90,53 @@ export function ProductList({ onEdit }: { onEdit: (p: Product) => void }) {
                 <Tag className="h-3 w-3" /> {p.category}
               </span>
             </div>
-            <div className="p-4">
-              <h3 className="font-semibold text-slate-900 dark:text-white truncate">{p.product_name}</h3>
+
+            {/* Contenido */}
+            <div className="p-4 flex-1 flex flex-col">
+              <h3 className="font-semibold text-slate-900 dark:text-white truncate text-sm">{p.name}</h3>
               {p.description && (
                 <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{p.description}</p>
               )}
+
+              {/* Opciones de color */}
+              {p.colorOptions && p.colorOptions.length > 0 && (
+                <div className="mt-3 flex items-center gap-1">
+                  <Palette className="h-3.5 w-3.5 text-slate-400" />
+                  <div className="flex gap-1">
+                    {p.colorOptions.slice(0, 3).map((c, i) => (
+                      <div
+                        key={i}
+                        className="h-4 w-4 rounded-full border border-slate-300 dark:border-white/20"
+                        style={{ backgroundColor: c.hexColor }}
+                        title={c.name}
+                      />
+                    ))}
+                    {p.colorOptions.length > 3 && (
+                      <span className="text-xs text-slate-500 ml-1">+{p.colorOptions.length - 3}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Opciones de almacenamiento */}
+              {p.storageOptions && p.storageOptions.length > 0 && (
+                <div className="mt-2 flex items-center gap-1">
+                  <Database className="h-3.5 w-3.5 text-slate-400" />
+                  <span className="text-xs text-slate-500">{p.storageOptions.length} opciones</span>
+                </div>
+              )}
+
+              {/* Precio y stock */}
               <div className="mt-3 flex items-center justify-between">
                 <span className="text-lg font-bold bg-gradient-to-r from-indigo-500 to-fuchsia-500 bg-clip-text text-transparent">
-                  ${Number(p.price).toFixed(2)}
+                  S/ {Number(p.price).toFixed(2)}
                 </span>
                 <span className="inline-flex items-center gap-1 text-xs text-slate-500">
                   <Boxes className="h-3.5 w-3.5" /> {p.stock}
                 </span>
               </div>
+
+              {/* Botones */}
               <div className="mt-4 flex gap-2">
                 <button
                   onClick={() => onEdit(p)}

@@ -2,7 +2,22 @@ import { useEffect, useState } from "react";
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { getFirebase } from "@/lib/firebase";
 import { toast } from "sonner";
-import { Loader2, Plus, Save, X } from "lucide-react";
+import { Loader2, Plus, Save, X, Trash2 } from "lucide-react";
+
+// ---------------------------------------------------------------------------
+// Tipos — deben calzar 1:1 con lo que lee ProductStore.swift.parseProduct(),
+// que es la fuente real de datos de ProductListView (no FirebaseProductManager,
+// ese solo se usa para el seed inicial en AppDelegate.swift).
+// ---------------------------------------------------------------------------
+export type ColorOption = {
+  name: string;
+  hexColor: string;
+};
+
+export type StorageOption = {
+  capacity: string;
+  priceMultiplier: number;
+};
 
 export type ProductInput = {
   name: string;
@@ -10,19 +25,33 @@ export type ProductInput = {
   category: string;
   image_url?: string;
   description?: string;
+  stock?: number;
+  colorOptions?: ColorOption[];
+  storageOptions?: StorageOption[];
 };
 
 export type Product = ProductInput & {
   id: string;
   created_at?: unknown;
-  // compatibilidad con productos antiguos de la app Flutter
+  // compatibilidad con productos antiguos / otros formatos
   product_name?: string;
   imageName?: string;
   imageURL?: string;
-  stock?: number;
 };
 
-const CATEGORIES = ["iPhone", "iPad", "Mac", "Apple Watch", "Accesorios", "Otros"];
+// Mismas categorías que usa la app (HomeView.swift / CategoryView.swift)
+const CATEGORIES = ["iPhone", "iPad", "Mac", "Apple Watch", "AirPods", "TV y Casa", "Accesorios"];
+
+const emptyForm: ProductInput = {
+  name: "",
+  price: 0,
+  category: CATEGORIES[0],
+  image_url: "",
+  description: "",
+  stock: 50,
+  colorOptions: [],
+  storageOptions: [],
+};
 
 export function ProductForm({
   editing,
@@ -31,33 +60,77 @@ export function ProductForm({
   editing: Product | null;
   onDone: () => void;
 }) {
-  const [form, setForm] = useState<ProductInput>({
-    name: "",
-    price: 0,
-    category: CATEGORIES[0],
-    image_url: "",
-    description: "",
-  });
+  const [form, setForm] = useState<ProductInput>(emptyForm);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (editing) {
       setForm({
         name: editing.name || editing.product_name || "",
-        price: editing.price,
-        category: editing.category,
-        image_url: editing.image_url || editing.imageURL || "",
+        price: editing.price ?? 0,
+        category: editing.category || CATEGORIES[0],
+        // ProductStore.swift lee "image_url" primero, luego "imageURL" como fallback
+        image_url: editing.image_url || editing.imageURL || editing.imageName || "",
         description: editing.description || "",
+        stock: editing.stock ?? 50,
+        colorOptions: editing.colorOptions || [],
+        storageOptions: editing.storageOptions || [],
       });
     } else {
-      setForm({ name: "", price: 0, category: CATEGORIES[0], image_url: "", description: "" });
+      setForm(emptyForm);
     }
   }, [editing]);
+
+  // --- Colores ---
+  const addColor = () => {
+    setForm((f) => ({
+      ...f,
+      colorOptions: [...(f.colorOptions || []), { name: "", hexColor: "#000000" }],
+    }));
+  };
+  const updateColor = (index: number, patch: Partial<ColorOption>) => {
+    setForm((f) => ({
+      ...f,
+      colorOptions: (f.colorOptions || []).map((c, i) => (i === index ? { ...c, ...patch } : c)),
+    }));
+  };
+  const removeColor = (index: number) => {
+    setForm((f) => ({
+      ...f,
+      colorOptions: (f.colorOptions || []).filter((_, i) => i !== index),
+    }));
+  };
+
+  // --- Capacidades ---
+  const addStorage = () => {
+    setForm((f) => ({
+      ...f,
+      storageOptions: [...(f.storageOptions || []), { capacity: "", priceMultiplier: 1 }],
+    }));
+  };
+  const updateStorage = (index: number, patch: Partial<StorageOption>) => {
+    setForm((f) => ({
+      ...f,
+      storageOptions: (f.storageOptions || []).map((s, i) => (i === index ? { ...s, ...patch } : s)),
+    }));
+  };
+  const removeStorage = (index: number) => {
+    setForm((f) => ({
+      ...f,
+      storageOptions: (f.storageOptions || []).filter((_, i) => i !== index),
+    }));
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const { db } = getFirebase();
     if (!db) return;
+
+    const cleanColors = (form.colorOptions || []).filter(
+      (c) => c.name.trim() !== "" && c.hexColor.trim() !== ""
+    );
+    const cleanStorages = (form.storageOptions || []).filter((s) => s.capacity.trim() !== "");
+
     setSaving(true);
     try {
       const payload = {
@@ -66,6 +139,12 @@ export function ProductForm({
         category: form.category,
         image_url: form.image_url?.trim() || "",
         description: form.description?.trim() || "",
+        stock: Number(form.stock ?? 50),
+        colorOptions: cleanColors,
+        storageOptions: cleanStorages.map((s) => ({
+          capacity: s.capacity.trim(),
+          priceMultiplier: Number(s.priceMultiplier) || 1,
+        })),
       };
       if (editing) {
         await updateDoc(doc(db, "products", editing.id), payload);
@@ -139,7 +218,17 @@ export function ProductForm({
             ))}
           </select>
         </Field>
-        <Field label="URL de imagen (opcional)" className="md:col-span-2">
+        <Field label="Stock">
+          <input
+            type="number"
+            min="0"
+            step="1"
+            value={form.stock ?? 50}
+            onChange={(e) => setForm({ ...form, stock: Number(e.target.value) })}
+            className={inputCls}
+          />
+        </Field>
+        <Field label="URL de imagen" className="md:col-span-2">
           <input
             type="url"
             value={form.image_url}
@@ -147,6 +236,10 @@ export function ProductForm({
             className={inputCls}
             placeholder="https://..."
           />
+          <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+            Se muestra bien en la lista de productos (RemoteOrLocalImage soporta URLs). En la pantalla de
+            detalle del producto todavía no, hasta aplicar el patch de ProductDetailView.swift.
+          </p>
         </Field>
         <Field label="Descripción (opcional)" className="md:col-span-2">
           <textarea
@@ -159,7 +252,116 @@ export function ProductForm({
         </Field>
       </div>
 
-      <div className="mt-5 flex justify-end">
+      {/* Colores */}
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wide">
+            Colores (opcional)
+          </span>
+          <button
+            type="button"
+            onClick={addColor}
+            className="inline-flex items-center gap-1 text-xs font-medium text-fuchsia-600 dark:text-fuchsia-400 hover:text-fuchsia-800 dark:hover:text-fuchsia-300 transition"
+          >
+            <Plus className="h-3.5 w-3.5" /> Agregar color
+          </button>
+        </div>
+        {(form.colorOptions || []).length === 0 && (
+          <p className="text-xs text-slate-400 dark:text-slate-500 italic">
+            Sin colores. El selector de color no se mostrará en la app.
+          </p>
+        )}
+        <div className="space-y-2">
+          {(form.colorOptions || []).map((color, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input
+                type="color"
+                value={/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(color.hexColor) ? color.hexColor : "#000000"}
+                onChange={(e) => updateColor(i, { hexColor: e.target.value })}
+                className="h-9 w-10 shrink-0 rounded-md border border-slate-200 dark:border-white/10 bg-transparent cursor-pointer"
+                title="Elegir color"
+              />
+              <input
+                value={color.name}
+                onChange={(e) => updateColor(i, { name: e.target.value })}
+                className={inputCls}
+                placeholder="Nombre (ej. Azul medianoche)"
+              />
+              <input
+                value={color.hexColor}
+                onChange={(e) => updateColor(i, { hexColor: e.target.value })}
+                className={inputCls + " w-28 shrink-0"}
+                placeholder="#000000"
+              />
+              <button
+                type="button"
+                onClick={() => removeColor(i)}
+                className="shrink-0 rounded-md p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition"
+                title="Quitar"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Capacidades / GB */}
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wide">
+            Capacidades / GB (opcional)
+          </span>
+          <button
+            type="button"
+            onClick={addStorage}
+            className="inline-flex items-center gap-1 text-xs font-medium text-fuchsia-600 dark:text-fuchsia-400 hover:text-fuchsia-800 dark:hover:text-fuchsia-300 transition"
+          >
+            <Plus className="h-3.5 w-3.5" /> Agregar capacidad
+          </button>
+        </div>
+        {(form.storageOptions || []).length === 0 && (
+          <p className="text-xs text-slate-400 dark:text-slate-500 italic">
+            Sin capacidades. Los botones de GB no se mostrarán en la app.
+          </p>
+        )}
+        <div className="space-y-2">
+          {(form.storageOptions || []).map((storage, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input
+                value={storage.capacity}
+                onChange={(e) => updateStorage(i, { capacity: e.target.value })}
+                className={inputCls}
+                placeholder="Ej. 128GB"
+              />
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={storage.priceMultiplier}
+                onChange={(e) => updateStorage(i, { priceMultiplier: Number(e.target.value) })}
+                className={inputCls + " w-36 shrink-0"}
+                placeholder="Multiplicador (ej. 1.15)"
+                title="Multiplicador de precio sobre el precio base"
+              />
+              <button
+                type="button"
+                onClick={() => removeStorage(i)}
+                className="shrink-0 rounded-md p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition"
+                title="Quitar"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+        <p className="mt-1.5 text-[11px] text-slate-400 dark:text-slate-500">
+          El multiplicador se aplica sobre el precio base. Ej. si el precio base es $1000 y el multiplicador es 1.15,
+          esa capacidad cuesta $1150.
+        </p>
+      </div>
+
+      <div className="mt-6 flex justify-end">
         <button
           type="submit"
           disabled={saving}
