@@ -5,17 +5,23 @@ import { t as getFirebase } from "./firebase-nyhvcZA1.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
 import { h as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { i as normalizeProductData, r as matchesProductSearch } from "./ProductForm-D5EXkFqJ.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/catalogo-BX8r1NV6.js
+import { n as writeCachedProducts, t as readCachedProducts } from "./product-cache-DsASDscr.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/catalogo-CHlJIQ8a.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function CatalogoPage() {
-	const [products, setProducts] = (0, import_react.useState)([]);
-	const [loading, setLoading] = (0, import_react.useState)(true);
+	const [products, setProducts] = (0, import_react.useState)(() => readCachedProducts());
+	const [loading, setLoading] = (0, import_react.useState)(() => readCachedProducts().length === 0);
 	const [search, setSearch] = (0, import_react.useState)("");
 	const [categoryFilter, setCategoryFilter] = (0, import_react.useState)("Todas");
 	(0, import_react.useEffect)(() => {
 		const { db } = getFirebase();
 		if (!db) return;
+		const cachedProducts = readCachedProducts();
+		if (cachedProducts.length > 0) {
+			setProducts(cachedProducts);
+			setLoading(false);
+		}
 		return onSnapshot(collection(db, "products"), (snap) => {
 			const items = snap.docs.map((d) => {
 				return normalizeProductData({
@@ -23,6 +29,7 @@ function CatalogoPage() {
 					...d.data()
 				});
 			});
+			writeCachedProducts(items);
 			setProducts(items);
 			setLoading(false);
 		});

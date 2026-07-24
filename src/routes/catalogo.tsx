@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { getFirebase } from "@/lib/firebase";
+import { readCachedProducts, writeCachedProducts } from "@/lib/product-cache";
 import { matchesProductSearch, normalizeProductData, type Product } from "@/components/ProductForm";
 
 export const Route = createFileRoute("/catalogo")({
@@ -9,19 +10,27 @@ export const Route = createFileRoute("/catalogo")({
 });
 
 function CatalogoPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(() => readCachedProducts());
+  const [loading, setLoading] = useState(() => readCachedProducts().length === 0);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("Todas");
 
   useEffect(() => {
     const { db } = getFirebase();
     if (!db) return;
+
+    const cachedProducts = readCachedProducts();
+    if (cachedProducts.length > 0) {
+      setProducts(cachedProducts);
+      setLoading(false);
+    }
+
     const unsub = onSnapshot(collection(db, "products"), (snap) => {
       const items = snap.docs.map((d) => {
         const raw = { id: d.id, ...(d.data() as Omit<Product, "id">) } as Product;
         return normalizeProductData(raw);
       });
+      writeCachedProducts(items);
       setProducts(items);
       setLoading(false);
     });

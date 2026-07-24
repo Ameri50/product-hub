@@ -1,0 +1,1 @@
+var e=`product-catalog-cache`;function t(){if(typeof window>`u`)return[];try{let t=window.localStorage.getItem(e);if(!t)return[];let n=JSON.parse(t);return Array.isArray(n)?n:[]}catch{return[]}}function n(t){if(!(typeof window>`u`))try{window.localStorage.setItem(e,JSON.stringify(t))}catch{}}export{n,t};

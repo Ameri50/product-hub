@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Boxes, ImageOff, Package, Pencil, Tag, Trash2 } from "lucide-react";
 import { getFirebase } from "@/lib/firebase";
 import { dispatchProductRemoved, removeProductInList, upsertProductInList } from "@/lib/product-sync";
+import { readCachedProducts, writeCachedProducts } from "@/lib/product-cache";
 import { matchesProductSearch, normalizeProductData, type Product } from "./ProductForm";
 
 export function ProductList({
@@ -13,12 +14,17 @@ export function ProductList({
   onEdit: (p: Product) => void;
   searchTerm?: string;
 }) {
-  const [products, setProducts] = useState<Product[] | null>(null);
+  const [products, setProducts] = useState<Product[] | null>(() => readCachedProducts());
   const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     const { db } = getFirebase();
     if (!db) return;
+
+    const cachedProducts = readCachedProducts();
+    if (cachedProducts.length > 0) {
+      setProducts(cachedProducts);
+    }
 
     const unsub = onSnapshot(
       collection(db, "products"),
@@ -32,11 +38,12 @@ export function ProductList({
           return normalizeProductData(raw);
         });
 
+        writeCachedProducts(items);
         setProducts(items);
       },
       (err) => {
         toast.error("Error al cargar productos: " + err.message);
-        setProducts([]);
+        setProducts(readCachedProducts());
       },
     );
 

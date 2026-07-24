@@ -8,15 +8,18 @@ import { h as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { n as toast } from "../_libs/sonner.mjs";
 import { _ as ImageOff, a as Sparkles, c as Search, d as Pencil, f as Package, g as LayoutGrid, h as LoaderCircle, i as Tag, n as Users, o as ShoppingBag, p as LogOut, r as Trash2, v as DatabaseZap, y as Boxes } from "../_libs/lucide-react.mjs";
 import { a as removeProductInList, i as normalizeProductData, n as dispatchProductRemoved, o as upsertProductInList, r as matchesProductSearch, t as ProductForm } from "./ProductForm-D5EXkFqJ.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/Dashboard-5wDApUAX.js
+import { n as writeCachedProducts, t as readCachedProducts } from "./product-cache-DsASDscr.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/Dashboard-Bq2A5hXu.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function ProductList({ onEdit, searchTerm = "" }) {
-	const [products, setProducts] = (0, import_react.useState)(null);
+	const [products, setProducts] = (0, import_react.useState)(() => readCachedProducts());
 	const [deleting, setDeleting] = (0, import_react.useState)(null);
 	(0, import_react.useEffect)(() => {
 		const { db } = getFirebase();
 		if (!db) return;
+		const cachedProducts = readCachedProducts();
+		if (cachedProducts.length > 0) setProducts(cachedProducts);
 		const unsub = onSnapshot(collection(db, "products"), (snap) => {
 			const items = snap.docs.map((d) => {
 				return normalizeProductData({
@@ -24,10 +27,11 @@ function ProductList({ onEdit, searchTerm = "" }) {
 					...d.data()
 				});
 			});
+			writeCachedProducts(items);
 			setProducts(items);
 		}, (err) => {
 			toast.error("Error al cargar productos: " + err.message);
-			setProducts([]);
+			setProducts(readCachedProducts());
 		});
 		const handleExternalProductChange = (event) => {
 			const detail = event.detail;
