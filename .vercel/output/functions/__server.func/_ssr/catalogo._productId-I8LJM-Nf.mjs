@@ -1,12 +1,12 @@
 import { o as __toESM } from "../_runtime.mjs";
 import "../_libs/firebase.mjs";
-import { r as onSnapshot, s as doc } from "../_libs/@firebase/firestore+[...].mjs";
-import { t as getFirebase } from "./firebase-BwL9iHXg.mjs";
+import { c as doc, r as onSnapshot } from "../_libs/@firebase/firestore+[...].mjs";
+import { t as getFirebase } from "./firebase-nyhvcZA1.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
 import { h as Link } from "../_libs/@tanstack/react-router+[...].mjs";
-import { i as normalizeProductData } from "./ProductForm-BfGZTqwy.mjs";
-import { t as Route } from "./catalogo._productId-BFVGR7Hm.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/catalogo._productId-CfqRWMUi.js
+import { i as normalizeProductData } from "./ProductForm-D5EXkFqJ.mjs";
+import { t as Route } from "./catalogo._productId-CAa0yyr-.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/catalogo._productId-I8LJM-Nf.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function ProductDetailPage() {

@@ -1,9 +1,10 @@
 import { o as __toESM } from "../_runtime.mjs";
 import { i as signOut, n as onAuthStateChanged, r as signInWithEmailAndPassword } from "../_libs/firebase__auth.mjs";
 import "../_libs/firebase.mjs";
-import { t as getFirebase } from "./firebase-BwL9iHXg.mjs";
+import { c as doc, i as setDoc, u as serverTimestamp } from "../_libs/@firebase/firestore+[...].mjs";
+import { t as getFirebase } from "./firebase-nyhvcZA1.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/auth-context-CeI1DVkt.js
+//#region node_modules/.nitro/vite/services/ssr/assets/auth-context-CaOleeLp.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var Ctx = (0, import_react.createContext)(null);
@@ -11,14 +12,23 @@ function AuthProvider({ children }) {
 	const [user, setUser] = (0, import_react.useState)(null);
 	const [loading, setLoading] = (0, import_react.useState)(true);
 	(0, import_react.useEffect)(() => {
-		const { auth } = getFirebase();
+		const { auth, db } = getFirebase();
 		if (!auth) {
 			setLoading(false);
 			return;
 		}
-		return onAuthStateChanged(auth, (u) => {
+		return onAuthStateChanged(auth, async (u) => {
 			setUser(u);
 			setLoading(false);
+			if (!u || !db) return;
+			await setDoc(doc(db, "users", u.uid), {
+				uid: u.uid,
+				email: u.email,
+				displayName: u.displayName ?? u.email?.split("@")[0] ?? "Usuario",
+				photoURL: u.photoURL ?? null,
+				createdAt: serverTimestamp(),
+				lastLoginAt: serverTimestamp()
+			}, { merge: true });
 		});
 	}, []);
 	const signIn = async (email, password) => {

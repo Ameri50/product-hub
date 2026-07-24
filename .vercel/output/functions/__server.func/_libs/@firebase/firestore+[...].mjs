@@ -75455,6 +75455,12 @@ function implementsAnyMethods(obj, methods) {
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+function setDoc(reference, data, options) {
+	reference = cast(reference, DocumentReference);
+	const firestore = cast(reference.firestore, Firestore);
+	const convertedValue = applyFirestoreDataConverter(reference.converter, data, options);
+	return executeWrite(firestore, [parseSetData(newUserDataReader(firestore), "setDoc", reference._key, convertedValue, reference.converter !== null, options).toMutation(reference._key, Precondition.none())]);
+}
 function updateDoc(reference, fieldOrUpdateData, value, ...moreFieldsAndValues) {
 	reference = cast(reference, DocumentReference);
 	const firestore = cast(reference.firestore, Firestore);
@@ -75682,4 +75688,4 @@ function writeBatch(firestore) {
 */
 registerFirestore("node");
 //#endregion
-export { writeBatch as a, getFirestore as c, updateDoc as i, serverTimestamp as l, deleteDoc as n, collection as o, onSnapshot as r, doc as s, addDoc as t };
+export { updateDoc as a, doc as c, setDoc as i, getFirestore as l, deleteDoc as n, writeBatch as o, onSnapshot as r, collection as s, addDoc as t, serverTimestamp as u };

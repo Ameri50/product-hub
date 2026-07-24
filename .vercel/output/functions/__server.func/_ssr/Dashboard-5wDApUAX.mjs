@@ -1,14 +1,14 @@
 import { o as __toESM } from "../_runtime.mjs";
 import "../_libs/firebase.mjs";
-import { a as writeBatch, l as serverTimestamp, n as deleteDoc, o as collection, r as onSnapshot, s as doc } from "../_libs/@firebase/firestore+[...].mjs";
-import { t as getFirebase } from "./firebase-BwL9iHXg.mjs";
+import { c as doc, n as deleteDoc, o as writeBatch, r as onSnapshot, s as collection, u as serverTimestamp } from "../_libs/@firebase/firestore+[...].mjs";
+import { t as getFirebase } from "./firebase-nyhvcZA1.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
-import { n as useAuth } from "./auth-context-CeI1DVkt.mjs";
+import { n as useAuth } from "./auth-context-CaOleeLp.mjs";
 import { h as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { n as toast } from "../_libs/sonner.mjs";
-import { _ as Boxes, d as LogOut, g as DatabaseZap, h as ImageOff, i as Sparkles, l as Pencil, m as LayoutGrid, n as Trash2, o as Search, p as LoaderCircle, r as Tag, u as Package } from "../_libs/lucide-react.mjs";
-import { a as removeProductInList, i as normalizeProductData, n as dispatchProductRemoved, o as upsertProductInList, r as matchesProductSearch, t as ProductForm } from "./ProductForm-BfGZTqwy.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/Dashboard-Cxi7lUFS.js
+import { _ as ImageOff, a as Sparkles, c as Search, d as Pencil, f as Package, g as LayoutGrid, h as LoaderCircle, i as Tag, n as Users, o as ShoppingBag, p as LogOut, r as Trash2, v as DatabaseZap, y as Boxes } from "../_libs/lucide-react.mjs";
+import { a as removeProductInList, i as normalizeProductData, n as dispatchProductRemoved, o as upsertProductInList, r as matchesProductSearch, t as ProductForm } from "./ProductForm-D5EXkFqJ.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/Dashboard-5wDApUAX.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function ProductList({ onEdit, searchTerm = "" }) {
@@ -1239,19 +1239,32 @@ function Dashboard() {
 						children: user?.email
 					})] })]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "flex items-center gap-2",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
-						to: "/catalogo",
-						className: "inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-fuchsia-500 px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-fuchsia-500/30 hover:opacity-90 transition",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LayoutGrid, { className: "h-3.5 w-3.5" }), " Ver catálogo"]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-						onClick: async () => {
-							await logout();
-							toast.success("Sesión cerrada");
-						},
-						className: "inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LogOut, { className: "h-3.5 w-3.5" }), " Salir"]
-					})]
+					className: "flex flex-wrap items-center justify-end gap-2",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
+							to: "/catalogo",
+							className: "inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-fuchsia-500 px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-fuchsia-500/30 hover:opacity-90 transition",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LayoutGrid, { className: "h-3.5 w-3.5" }), " Ver catálogo"]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
+							to: "/pedidos",
+							className: "inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-slate-900/80 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ShoppingBag, { className: "h-3.5 w-3.5" }), " Pedidos"]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
+							to: "/usuarios",
+							className: "inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-slate-900/80 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Users, { className: "h-3.5 w-3.5" }), " Usuarios"]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							onClick: async () => {
+								await logout();
+								toast.success("Sesión cerrada");
+							},
+							className: "inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LogOut, { className: "h-3.5 w-3.5" }), " Salir"]
+						})
+					]
 				})]
 			})
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {

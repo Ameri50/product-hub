@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } from "firebase/auth";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { getFirebase } from "./firebase";
 
 type AuthCtx = {
@@ -16,14 +17,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { auth } = getFirebase();
+    const { auth, db } = getFirebase();
     if (!auth) {
       setLoading(false);
       return;
     }
-    const unsub = onAuthStateChanged(auth, (u) => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       setLoading(false);
+
+      if (!u || !db) return;
+
+      await setDoc(
+        doc(db, "users", u.uid),
+        {
+          uid: u.uid,
+          email: u.email,
+          displayName: u.displayName ?? u.email?.split("@")[0] ?? "Usuario",
+          photoURL: u.photoURL ?? null,
+          createdAt: serverTimestamp(),
+          lastLoginAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
     });
     return unsub;
   }, []);

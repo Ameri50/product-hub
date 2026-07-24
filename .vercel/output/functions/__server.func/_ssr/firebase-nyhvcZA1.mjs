@@ -1,8 +1,8 @@
 import { a as getApp, o as getApps, s as initializeApp } from "../_libs/@firebase/app+[...].mjs";
 import { t as getAuth } from "../_libs/firebase__auth.mjs";
 import "../_libs/firebase.mjs";
-import { c as getFirestore } from "../_libs/@firebase/firestore+[...].mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/firebase-BwL9iHXg.js
+import { l as getFirestore } from "../_libs/@firebase/firestore+[...].mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/firebase-nyhvcZA1.js
 var firebaseConfig = {
 	apiKey: "AIzaSyCn9yWVnz2l-_A41ombelQmXDyA9MC0Lvk",
 	authDomain: "miapp-4a216.firebaseapp.com",

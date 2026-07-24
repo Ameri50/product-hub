@@ -1,11 +1,11 @@
 import { o as __toESM } from "../_runtime.mjs";
 import "../_libs/firebase.mjs";
-import { i as updateDoc, l as serverTimestamp, o as collection, s as doc, t as addDoc } from "../_libs/@firebase/firestore+[...].mjs";
-import { t as getFirebase } from "./firebase-BwL9iHXg.mjs";
+import { a as updateDoc, c as doc, s as collection, t as addDoc, u as serverTimestamp } from "../_libs/@firebase/firestore+[...].mjs";
+import { t as getFirebase } from "./firebase-nyhvcZA1.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
 import { n as toast } from "../_libs/sonner.mjs";
-import { c as Plus, n as Trash2, p as LoaderCircle, s as Save, t as X } from "../_libs/lucide-react.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/ProductForm-BfGZTqwy.js
+import { h as LoaderCircle, l as Save, r as Trash2, t as X, u as Plus } from "../_libs/lucide-react.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/ProductForm-D5EXkFqJ.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function dispatchProductChanged(product) {
