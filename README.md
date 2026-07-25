@@ -1,14 +1,12 @@
-# Welcome to your Lovable project
+# Product Hub
 
-This project was built with [Lovable](https://lovable.dev).
+Este proyecto fue desarrollado por mí para gestionar productos, catálogo y operaciones del negocio.
 
-## Build with Lovable
+## Desarrollo local
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Instala dependencias**: npm install
+- **Inicia el entorno**: npm run dev
+- **Construye para producción**: npm run build
 
 ## Development
 

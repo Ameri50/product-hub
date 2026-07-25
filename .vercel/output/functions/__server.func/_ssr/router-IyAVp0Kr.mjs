@@ -3,11 +3,11 @@ import { n as require_jsx_runtime, r as require_react, t as QueryClientProvider 
 import { c as HeadContent, d as Outlet, f as lazyRouteComponent, g as useRouter, h as Link, m as createRootRouteWithContext, p as createFileRoute, s as Scripts, u as createRouter } from "../_libs/@tanstack/react-router+[...].mjs";
 import { t as Route$5 } from "./catalogo._productId-CAa0yyr-.mjs";
 import { t as QueryClient } from "../_libs/tanstack__query-core.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/router-DlSaYwhQ.js
+//#region node_modules/.nitro/vite/services/ssr/assets/router-IyAVp0Kr.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var styles_default = "/assets/styles-CiIY5t3H.css";
-function reportLovableError(error, context = {}) {
+function reportAppError(error, context = {}) {
 	if (typeof window === "undefined") return;
 	window.__lovableEvents?.captureException?.(error, {
 		source: "react_error_boundary",
@@ -59,7 +59,7 @@ function ErrorComponent({ error, reset }) {
 	console.error(error);
 	const router = useRouter();
 	(0, import_react.useEffect)(() => {
-		reportLovableError(error, { boundary: "tanstack_root_error_component" });
+		reportAppError(error, { boundary: "tanstack_root_error_component" });
 	}, [error]);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 		className: "flex min-h-screen items-center justify-center bg-background px-4",
@@ -101,22 +101,22 @@ var Route$4 = createRootRouteWithContext()({
 				name: "viewport",
 				content: "width=device-width, initial-scale=1"
 			},
-			{ title: "Lovable App" },
+			{ title: "Product Hub" },
 			{
 				name: "description",
-				content: "Lovable Generated Project"
+				content: "Gestión de productos y catálogo para tu negocio"
 			},
 			{
 				name: "author",
-				content: "Lovable"
+				content: "Moises Rojas"
 			},
 			{
 				property: "og:title",
-				content: "Lovable App"
+				content: "Product Hub"
 			},
 			{
 				property: "og:description",
-				content: "Lovable Generated Project"
+				content: "Gestión de productos y catálogo para tu negocio"
 			},
 			{
 				property: "og:type",
@@ -128,7 +128,7 @@ var Route$4 = createRootRouteWithContext()({
 			},
 			{
 				name: "twitter:site",
-				content: "@Lovable"
+				content: "@moisesrojas"
 			}
 		],
 		links: [{
