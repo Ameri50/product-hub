@@ -4,7 +4,7 @@ import { a as updateDoc, c as doc, s as collection, t as addDoc, u as serverTime
 import { t as getFirebase } from "./firebase-nyhvcZA1.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
 import { n as toast } from "../_libs/sonner.mjs";
-import { h as LoaderCircle, l as Save, r as Trash2, t as X, u as Plus } from "../_libs/lucide-react.mjs";
+import { d as Plus, g as LoaderCircle, r as Trash2, t as X, u as Save } from "../_libs/lucide-react.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/ProductForm-D5EXkFqJ.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();

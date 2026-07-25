@@ -3,13 +3,13 @@ import "../_libs/firebase.mjs";
 import { c as doc, n as deleteDoc, o as writeBatch, r as onSnapshot, s as collection, u as serverTimestamp } from "../_libs/@firebase/firestore+[...].mjs";
 import { t as getFirebase } from "./firebase-nyhvcZA1.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
-import { n as useAuth } from "./auth-context-CaOleeLp.mjs";
+import { n as useAuth } from "./auth-context-D4F3t8y3.mjs";
 import { h as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { n as toast } from "../_libs/sonner.mjs";
-import { _ as ImageOff, a as Sparkles, c as Search, d as Pencil, f as Package, g as LayoutGrid, h as LoaderCircle, i as Tag, n as Users, o as ShoppingBag, p as LogOut, r as Trash2, v as DatabaseZap, y as Boxes } from "../_libs/lucide-react.mjs";
+import { _ as LayoutGrid, a as Sparkles, b as Boxes, f as Pencil, g as LoaderCircle, i as Tag, l as Search, m as LogOut, n as Users, o as ShoppingBag, p as Package, r as Trash2, v as ImageOff, y as DatabaseZap } from "../_libs/lucide-react.mjs";
 import { a as removeProductInList, i as normalizeProductData, n as dispatchProductRemoved, o as upsertProductInList, r as matchesProductSearch, t as ProductForm } from "./ProductForm-D5EXkFqJ.mjs";
 import { n as writeCachedProducts, t as readCachedProducts } from "./product-cache-DsASDscr.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/Dashboard-Bq2A5hXu.js
+//#region node_modules/.nitro/vite/services/ssr/assets/Dashboard-D5TEpheF.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function ProductList({ onEdit, searchTerm = "" }) {

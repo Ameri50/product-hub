@@ -2,20 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } from "firebase/auth";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { getFirebase } from "./firebase";
-
-// Helper to determine admin emails. You can set a comma-separated list of
-// admin emails in NEXT_PUBLIC_ADMIN_EMAILS env var (e.g. "a@x.com,b@y.com").
-const ADMIN_EMAILS = new Set(
-  (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean),
-);
-
-function isAdminEmail(email?: string | null): boolean {
-  if (!email) return false;
-  return ADMIN_EMAILS.size > 0 ? ADMIN_EMAILS.has(email) : false;
-}
+import { isAdminEmail } from "./admin";
 
 type AuthCtx = {
   user: User | null;
