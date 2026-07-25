@@ -1,0 +1,14 @@
+/**
+ * Lista de correos autorizados a usar el panel admin.
+ * Esta lista se usa en el cliente SOLO para decidir qué UI mostrar.
+ * La seguridad real vive en firestore.rules / storage.rules (que también
+ * deben listar estos mismos correos), porque las reglas del cliente
+ * nunca son suficientes por sí solas.
+ */
+export const ADMIN_EMAILS = ["joshuarojas432@gmail.com"] as const;
+
+export function isAdminEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const normalized = email.trim().toLowerCase();
+  return ADMIN_EMAILS.some((adminEmail) => adminEmail.toLowerCase() === normalized);
+}

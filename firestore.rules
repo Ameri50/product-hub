@@ -1,8 +1,50 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // --- Ajusta este correo si agregas más administradores ---
+    // Debe coincidir con ADMIN_EMAILS en src/lib/admin.ts
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        request.auth.token.email in [
+          'joshuarojas432@gmail.com'
+        ];
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Catálogo: lectura pública (lo consume la app iOS y la web sin
+    // login), escritura solo desde el panel admin autenticado.
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Perfiles de usuario: cada usuario solo puede leer/escribir el suyo.
+    // El admin puede leer/escribir cualquiera (panel de "Usuarios").
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // Pedidos: cualquier usuario autenticado puede crear el suyo.
+    // NOTA: ajusta "resource.data.uid" al nombre real del campo que usas
+    // en el documento de la orden para identificar al dueño (uid del
+    // usuario) en tu app iOS. Mientras tanto, solo el admin puede leer
+    // o modificar pedidos ya creados, para no dejar la colección abierta.
+    match /orders/{orderId} {
+      allow create: if isSignedIn();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Todo lo demás: cerrado por defecto, solo admin.
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if isAdmin();
     }
   }
 }

@@ -1,8 +1,29 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        request.auth.token.email in [
+          'joshuarojas432@gmail.com'
+        ];
+    }
+
+    // Imágenes de productos: lectura pública (se muestran en la app y
+    // en la web), escritura solo desde el panel admin. Límite de 10MB
+    // por archivo para evitar subidas abusivas.
+    match /products/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // Todo lo demás: cerrado por defecto, solo admin.
     match /{allPaths=**} {
-      allow read, write: if true;
+      allow read, write: if isAdmin();
     }
   }
 }

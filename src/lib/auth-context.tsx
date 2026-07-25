@@ -3,9 +3,24 @@ import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } fr
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { getFirebase } from "./firebase";
 
+// Helper to determine admin emails. You can set a comma-separated list of
+// admin emails in NEXT_PUBLIC_ADMIN_EMAILS env var (e.g. "a@x.com,b@y.com").
+const ADMIN_EMAILS = new Set(
+  (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean),
+);
+
+function isAdminEmail(email?: string | null): boolean {
+  if (!email) return false;
+  return ADMIN_EMAILS.size > 0 ? ADMIN_EMAILS.has(email) : false;
+}
+
 type AuthCtx = {
   user: User | null;
   loading: boolean;
+  isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -27,6 +42,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
 
       if (!u || !db) return;
+
+      // Solo se guarda/actualiza el perfil en Firestore si el usuario
+      // es un admin conocido. Un usuario cualquiera que inicie sesión
+      // (por ejemplo, con una cuenta de la app móvil) no debe poder
+      // escribir en "users" desde este panel.
+      if (!isAdminEmail(u.email)) return;
 
       await setDoc(
         doc(db, "users", u.uid),
@@ -56,7 +77,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signOut(auth);
   };
 
-  return <Ctx.Provider value={{ user, loading, signIn, logout }}>{children}</Ctx.Provider>;
+  const isAdmin = isAdminEmail(user?.email);
+
+  return (
+    <Ctx.Provider value={{ user, loading, isAdmin, signIn, logout }}>{children}</Ctx.Provider>
+  );
 }
 
 export function useAuth() {
