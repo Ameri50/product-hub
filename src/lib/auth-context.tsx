@@ -4,6 +4,8 @@ import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { getFirebase } from "./firebase";
 import { isAdminEmail } from "./admin";
 
+const ALLOWED_ADMIN_EMAILS = ["joshuarojas432@gmail.com", "promo2026@outlook.com"];
+
 type AuthCtx = {
   user: User | null;
   loading: boolean;
@@ -34,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // es un admin conocido. Un usuario cualquiera que inicie sesión
       // (por ejemplo, con una cuenta de la app móvil) no debe poder
       // escribir en "users" desde este panel.
-      if (!isAdminEmail(u.email)) return;
+      if (!u.email || !ALLOWED_ADMIN_EMAILS.includes(u.email.toLowerCase())) return;
 
       await setDoc(
         doc(db, "users", u.uid),
@@ -55,7 +57,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string) => {
     const { auth } = getFirebase();
     if (!auth) throw new Error("Firebase no está listo");
-    await signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    if (!userCredential.user.email) {
+      throw new Error("No se pudo identificar la cuenta");
+    }
   };
 
   const logout = async () => {
@@ -64,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signOut(auth);
   };
 
-  const isAdmin = isAdminEmail(user?.email);
+  const isAdmin = Boolean(user?.email && ALLOWED_ADMIN_EMAILS.includes(user.email.toLowerCase()));
 
   return (
     <Ctx.Provider value={{ user, loading, isAdmin, signIn, logout }}>{children}</Ctx.Provider>
