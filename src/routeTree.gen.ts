@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CatalogoRouteImport } from './routes/catalogo'
 import { Route as PedidosRouteImport } from './routes/pedidos'
+import { Route as ProductosSinImagenRouteImport } from './routes/productos-sin-imagen'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as CatalogoProductIdRouteImport } from './routes/catalogo.$productId'
 
@@ -30,6 +31,11 @@ const PedidosRoute = PedidosRouteImport.update({
   path: '/pedidos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProductosSinImagenRoute = ProductosSinImagenRouteImport.update({
+  id: '/productos-sin-imagen',
+  path: '/productos-sin-imagen',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UsuariosRoute = UsuariosRouteImport.update({
   id: '/usuarios',
   path: '/usuarios',
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/catalogo': typeof CatalogoRouteWithChildren
   '/pedidos': typeof PedidosRoute
+  '/productos-sin-imagen': typeof ProductosSinImagenRoute
   '/usuarios': typeof UsuariosRoute
   '/catalogo/$productId': typeof CatalogoProductIdRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/catalogo': typeof CatalogoRouteWithChildren
   '/pedidos': typeof PedidosRoute
+  '/productos-sin-imagen': typeof ProductosSinImagenRoute
   '/usuarios': typeof UsuariosRoute
   '/catalogo/$productId': typeof CatalogoProductIdRoute
 }
@@ -60,20 +68,33 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/catalogo': typeof CatalogoRouteWithChildren
   '/pedidos': typeof PedidosRoute
+  '/productos-sin-imagen': typeof ProductosSinImagenRoute
   '/usuarios': typeof UsuariosRoute
   '/catalogo/$productId': typeof CatalogoProductIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/catalogo' | '/pedidos' | '/usuarios' | '/catalogo/$productId'
+    | '/'
+    | '/catalogo'
+    | '/pedidos'
+    | '/productos-sin-imagen'
+    | '/usuarios'
+    | '/catalogo/$productId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/catalogo' | '/pedidos' | '/usuarios' | '/catalogo/$productId'
+  to:
+    | '/'
+    | '/catalogo'
+    | '/pedidos'
+    | '/productos-sin-imagen'
+    | '/usuarios'
+    | '/catalogo/$productId'
   id:
     | '__root__'
     | '/'
     | '/catalogo'
     | '/pedidos'
+    | '/productos-sin-imagen'
     | '/usuarios'
     | '/catalogo/$productId'
   fileRoutesById: FileRoutesById
@@ -82,6 +103,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CatalogoRoute: typeof CatalogoRouteWithChildren
   PedidosRoute: typeof PedidosRoute
+  ProductosSinImagenRoute: typeof ProductosSinImagenRoute
   UsuariosRoute: typeof UsuariosRoute
 }
 
@@ -106,6 +128,13 @@ declare module '@tanstack/react-router' {
       path: '/pedidos'
       fullPath: '/pedidos'
       preLoaderRoute: typeof PedidosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/productos-sin-imagen': {
+      id: '/productos-sin-imagen'
+      path: '/productos-sin-imagen'
+      fullPath: '/productos-sin-imagen'
+      preLoaderRoute: typeof ProductosSinImagenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/usuarios': {
@@ -141,6 +170,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CatalogoRoute: CatalogoRouteWithChildren,
   PedidosRoute: PedidosRoute,
+  ProductosSinImagenRoute: ProductosSinImagenRoute,
   UsuariosRoute: UsuariosRoute,
 }
 export const routeTree = rootRouteImport

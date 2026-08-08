@@ -61,22 +61,27 @@ export function normalizeProductData(product: Partial<Product> & Record<string, 
   } as Product;
 }
 
+export function getProductSearchText(product: Partial<Product>) {
+  const normalized = normalizeProductData(product as Partial<Product> & Record<string, unknown>);
+  const fields = [
+    normalized.name,
+    normalized.category,
+    normalized.description,
+    normalized.biography,
+    normalized.price?.toString(),
+    ...(normalized.colorOptions || []).flatMap((color) => [color.name, color.hexColor]),
+    ...(normalized.storageOptions || []).flatMap((storage) => [storage.capacity, storage.priceMultiplier?.toString()]),
+  ];
+
+  return fields.filter(Boolean).join(" ").toLowerCase();
+}
+
 export function matchesProductSearch(product: Partial<Product>, term: string) {
   const normalizedTerm = term.trim().toLowerCase();
   if (!normalizedTerm) return true;
+  const searchText = getProductSearchText(product);
 
-  const normalizedProduct = normalizeProductData(product as Partial<Product> & Record<string, unknown>);
-  const searchableFields = [
-    normalizedProduct.name,
-    normalizedProduct.category,
-    normalizedProduct.description,
-    normalizedProduct.biography,
-    normalizedProduct.price?.toString(),
-    ...(normalizedProduct.colorOptions || []).map((color) => `${color.name} ${color.hexColor}`),
-    ...(normalizedProduct.storageOptions || []).map((storage) => `${storage.capacity} ${storage.priceMultiplier}`),
-  ];
-
-  return searchableFields.some((field) => field?.toLowerCase().includes(normalizedTerm));
+  return searchText.includes(normalizedTerm);
 }
 
 // Mismas categorías que usa la app (HomeView.swift / CategoryView.swift)

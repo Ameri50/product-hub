@@ -7,9 +7,8 @@ import { n as useAuth } from "./auth-context-Dj2eZIgJ.mjs";
 import { h as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { n as toast } from "../_libs/sonner.mjs";
 import { _ as LayoutGrid, a as Sparkles, b as Boxes, f as Pencil, g as LoaderCircle, i as Tag, l as Search, m as LogOut, n as Users, o as ShoppingBag, p as Package, r as Trash2, v as ImageOff, y as DatabaseZap } from "../_libs/lucide-react.mjs";
-import { a as removeProductInList, i as normalizeProductData, n as dispatchProductRemoved, o as upsertProductInList, r as matchesProductSearch, t as ProductForm } from "./ProductForm-D5EXkFqJ.mjs";
-import { n as writeCachedProducts, t as readCachedProducts } from "./product-cache-DsASDscr.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/Dashboard-CGmlfV6t.js
+import { a as removeProductInList, i as normalizeProductData, n as dispatchProductRemoved, o as upsertProductInList, r as getProductSearchText, t as ProductForm } from "./ProductForm-DQmi2kjH.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/Dashboard-CAAMAJ55.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function ProductList({ onEdit, searchTerm = "" }) {
@@ -64,9 +63,22 @@ function ProductList({ onEdit, searchTerm = "" }) {
 			setDeleting(null);
 		}
 	};
+	const deferredSearchTerm = (0, import_react.useDeferredValue)(searchTerm);
+	const productsWithSearch = (0, import_react.useMemo)(() => {
+		return (products ?? []).map((product) => ({
+			product,
+			searchText: getProductSearchText(product)
+		}));
+	}, [products]);
 	const filteredProducts = (0, import_react.useMemo)(() => {
-		return (products ?? []).filter((p) => matchesProductSearch(p, searchTerm));
-	}, [products, searchTerm]);
+		const normalizedTerm = deferredSearchTerm.trim().toLowerCase();
+		if (!normalizedTerm) return products ?? [];
+		return productsWithSearch.filter((item) => item.searchText.includes(normalizedTerm)).map((item) => item.product);
+	}, [
+		productsWithSearch,
+		deferredSearchTerm,
+		products
+	]);
 	if (products === null) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 		className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4",
 		children: Array.from({ length: 4 }).map((_, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "animate-pulse rounded-2xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-slate-900/60 h-80" }, i))

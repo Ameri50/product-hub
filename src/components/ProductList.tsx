@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { collection, deleteDoc, doc, onSnapshot } from "firebase/firestore";
 import { toast } from "sonner";
 import { Boxes, ImageOff, Package, Pencil, Tag, Trash2 } from "lucide-react";
 import { getFirebase } from "@/lib/firebase";
 import { dispatchProductRemoved, removeProductInList, upsertProductInList } from "@/lib/product-sync";
+import { getProductSearchText, matchesProductSearch, normalizeProductData, type Product } from "./ProductForm";
 import { readCachedProducts, writeCachedProducts } from "@/lib/product-cache";
-import { matchesProductSearch, normalizeProductData, type Product } from "./ProductForm";
 
 export function ProductList({
   onEdit,
@@ -99,9 +99,23 @@ export function ProductList({
     }
   };
 
+  const deferredSearchTerm = useDeferredValue(searchTerm);
+
+  const productsWithSearch = useMemo(() => {
+    return (products ?? []).map((product) => ({
+      product,
+      searchText: getProductSearchText(product),
+    }));
+  }, [products]);
+
   const filteredProducts = useMemo(() => {
-    return (products ?? []).filter((p) => matchesProductSearch(p, searchTerm));
-  }, [products, searchTerm]);
+    const normalizedTerm = deferredSearchTerm.trim().toLowerCase();
+    if (!normalizedTerm) return products ?? [];
+
+    return productsWithSearch
+      .filter((item) => item.searchText.includes(normalizedTerm))
+      .map((item) => item.product);
+  }, [productsWithSearch, deferredSearchTerm, products]);
 
   // ✅ Ya puedes hacer el return del loading
   if (products === null) {

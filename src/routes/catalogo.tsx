@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { getFirebase } from "@/lib/firebase";
 import { readCachedProducts, writeCachedProducts } from "@/lib/product-cache";
-import { matchesProductSearch, normalizeProductData, type Product } from "@/components/ProductForm";
+import { getProductSearchText, normalizeProductData, type Product } from "@/components/ProductForm";
 
 export const Route = createFileRoute("/catalogo")({
   component: CatalogoPage,
@@ -42,13 +42,23 @@ function CatalogoPage() {
     [products],
   ) as string[];
 
+  const deferredSearch = useDeferredValue(search);
+
+  const productsWithSearch = useMemo(
+    () => products.map((product) => ({ product, searchText: getProductSearchText(product) })),
+    [products],
+  );
+
   const filtered = useMemo(() => {
-    return products.filter((p) => {
-      const matchesSearch = matchesProductSearch(p, search);
-      const matchesCategory = categoryFilter === "Todas" || p.category === categoryFilter;
-      return matchesSearch && matchesCategory;
-    });
-  }, [categoryFilter, products, search]);
+    const normalizedSearch = deferredSearch.trim().toLowerCase();
+    return productsWithSearch
+      .filter(({ product, searchText }) => {
+        const matchesCategory = categoryFilter === "Todas" || product.category === categoryFilter;
+        const matchesSearch = !normalizedSearch || searchText.includes(normalizedSearch);
+        return matchesCategory && matchesSearch;
+      })
+      .map(({ product }) => product);
+  }, [categoryFilter, deferredSearch, productsWithSearch]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-950 to-fuchsia-950 px-4 py-10">

@@ -3,7 +3,7 @@ import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tan
 import { n as useAuth, t as AuthProvider } from "./auth-context-Dj2eZIgJ.mjs";
 import { n as toast, t as Toaster } from "../_libs/sonner.mjs";
 import { c as ShieldAlert, g as LoaderCircle, h as LogIn, m as LogOut, s as ShieldCheck } from "../_libs/lucide-react.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-Dt4LWkeT.js
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-ClF1NAQi.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function LoginScreen() {
@@ -87,7 +87,7 @@ function LoginScreen() {
 		})
 	});
 }
-var Dashboard = (0, import_react.lazy)(() => import("./Dashboard-CGmlfV6t.mjs").then((m) => ({ default: m.Dashboard })));
+var Dashboard = (0, import_react.lazy)(() => import("./Dashboard-CAAMAJ55.mjs").then((m) => ({ default: m.Dashboard })));
 function FullScreenLoader() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 		className: "min-h-screen grid place-items-center bg-slate-950",

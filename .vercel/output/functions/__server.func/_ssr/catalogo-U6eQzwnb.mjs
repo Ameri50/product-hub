@@ -4,11 +4,28 @@ import { r as onSnapshot, s as collection } from "../_libs/@firebase/firestore+[
 import { t as getFirebase } from "./firebase-nyhvcZA1.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
 import { h as Link } from "../_libs/@tanstack/react-router+[...].mjs";
-import { i as normalizeProductData, r as matchesProductSearch } from "./ProductForm-D5EXkFqJ.mjs";
-import { n as writeCachedProducts, t as readCachedProducts } from "./product-cache-DsASDscr.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/catalogo-CHlJIQ8a.js
+import { i as normalizeProductData, r as getProductSearchText } from "./ProductForm-DQmi2kjH.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/catalogo-U6eQzwnb.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
+var PRODUCT_CACHE_KEY = "product-catalog-cache";
+function readCachedProducts() {
+	if (typeof window === "undefined") return [];
+	try {
+		const raw = window.localStorage.getItem(PRODUCT_CACHE_KEY);
+		if (!raw) return [];
+		const parsed = JSON.parse(raw);
+		return Array.isArray(parsed) ? parsed : [];
+	} catch {
+		return [];
+	}
+}
+function writeCachedProducts(products) {
+	if (typeof window === "undefined") return;
+	try {
+		window.localStorage.setItem(PRODUCT_CACHE_KEY, JSON.stringify(products));
+	} catch {}
+}
 function CatalogoPage() {
 	const [products, setProducts] = (0, import_react.useState)(() => readCachedProducts());
 	const [loading, setLoading] = (0, import_react.useState)(() => readCachedProducts().length === 0);
@@ -35,16 +52,22 @@ function CatalogoPage() {
 		});
 	}, []);
 	const categories = (0, import_react.useMemo)(() => ["Todas", ...Array.from(new Set(products.map((p) => p.category).filter(Boolean)))], [products]);
+	const deferredSearch = (0, import_react.useDeferredValue)(search);
+	const productsWithSearch = (0, import_react.useMemo)(() => products.map((product) => ({
+		product,
+		searchText: getProductSearchText(product)
+	})), [products]);
 	const filtered = (0, import_react.useMemo)(() => {
-		return products.filter((p) => {
-			const matchesSearch = matchesProductSearch(p, search);
-			const matchesCategory = categoryFilter === "Todas" || p.category === categoryFilter;
-			return matchesSearch && matchesCategory;
-		});
+		const normalizedSearch = deferredSearch.trim().toLowerCase();
+		return productsWithSearch.filter(({ product, searchText }) => {
+			const matchesCategory = categoryFilter === "Todas" || product.category === categoryFilter;
+			const matchesSearch = !normalizedSearch || searchText.includes(normalizedSearch);
+			return matchesCategory && matchesSearch;
+		}).map(({ product }) => product);
 	}, [
 		categoryFilter,
-		products,
-		search
+		deferredSearch,
+		productsWithSearch
 	]);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 		className: "min-h-screen bg-gradient-to-br from-indigo-950 via-slate-950 to-fuchsia-950 px-4 py-10",

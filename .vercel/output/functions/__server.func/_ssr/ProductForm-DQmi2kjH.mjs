@@ -5,7 +5,7 @@ import { t as getFirebase } from "./firebase-nyhvcZA1.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
 import { n as toast } from "../_libs/sonner.mjs";
 import { d as Plus, g as LoaderCircle, r as Trash2, t as X, u as Save } from "../_libs/lucide-react.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/ProductForm-D5EXkFqJ.js
+//#region node_modules/.nitro/vite/services/ssr/assets/ProductForm-DQmi2kjH.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function dispatchProductChanged(product) {
@@ -48,19 +48,17 @@ function normalizeProductData(product) {
 		storages: normalizedStorages
 	};
 }
-function matchesProductSearch(product, term) {
-	const normalizedTerm = term.trim().toLowerCase();
-	if (!normalizedTerm) return true;
-	const normalizedProduct = normalizeProductData(product);
+function getProductSearchText(product) {
+	const normalized = normalizeProductData(product);
 	return [
-		normalizedProduct.name,
-		normalizedProduct.category,
-		normalizedProduct.description,
-		normalizedProduct.biography,
-		normalizedProduct.price?.toString(),
-		...(normalizedProduct.colorOptions || []).map((color) => `${color.name} ${color.hexColor}`),
-		...(normalizedProduct.storageOptions || []).map((storage) => `${storage.capacity} ${storage.priceMultiplier}`)
-	].some((field) => field?.toLowerCase().includes(normalizedTerm));
+		normalized.name,
+		normalized.category,
+		normalized.description,
+		normalized.biography,
+		normalized.price?.toString(),
+		...(normalized.colorOptions || []).flatMap((color) => [color.name, color.hexColor]),
+		...(normalized.storageOptions || []).flatMap((storage) => [storage.capacity, storage.priceMultiplier?.toString()])
+	].filter(Boolean).join(" ").toLowerCase();
 }
 var CATEGORIES = [
 	"iPhone",
@@ -511,4 +509,4 @@ function Field({ label, children, className = "" }) {
 	});
 }
 //#endregion
-export { removeProductInList as a, normalizeProductData as i, dispatchProductRemoved as n, upsertProductInList as o, matchesProductSearch as r, ProductForm as t };
+export { removeProductInList as a, normalizeProductData as i, dispatchProductRemoved as n, upsertProductInList as o, getProductSearchText as r, ProductForm as t };

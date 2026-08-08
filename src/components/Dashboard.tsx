@@ -3,7 +3,7 @@ import { useAuth } from "@/lib/auth-context";
 import { ProductForm, type Product } from "./ProductForm";
 import { ProductList } from "./ProductList";
 import { SeedCatalogButton } from "./SeedCatalogButton";
-import { LogOut, Sparkles, LayoutGrid, Search, ShoppingBag, Users } from "lucide-react";
+import { ImageOff, LogOut, Sparkles, LayoutGrid, Search, ShoppingBag, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 
@@ -43,6 +43,12 @@ export function Dashboard() {
               className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-slate-900/80 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
             >
               <Users className="h-3.5 w-3.5" /> Usuarios
+            </Link>
+            <Link
+              to="/productos-sin-imagen"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-slate-900/80 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+            >
+              <ImageOff className="h-3.5 w-3.5" /> Sin imagen
             </Link>
             <button
               onClick={async () => {
