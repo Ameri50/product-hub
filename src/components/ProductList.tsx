@@ -1,21 +1,137 @@
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { collection, deleteDoc, doc, onSnapshot } from "firebase/firestore";
 import { toast } from "sonner";
-import { Boxes, ImageOff, Package, Pencil, Tag, Trash2 } from "lucide-react";
+import { Boxes, ImageOff, Package, Pencil, Search, Tag, Trash2 } from "lucide-react";
 import { getFirebase } from "@/lib/firebase";
 import { dispatchProductRemoved, removeProductInList, upsertProductInList } from "@/lib/product-sync";
-import { getProductSearchText, matchesProductSearch, normalizeProductData, type Product } from "./ProductForm";
+import { getProductSearchText, normalizeProductData, type Product } from "./ProductForm";
 import { readCachedProducts, writeCachedProducts } from "@/lib/product-cache";
 
-export function ProductList({
-  onEdit,
-  searchTerm = "",
-}: {
+type ProductCardProps = {
+  product: Product;
   onEdit: (p: Product) => void;
-  searchTerm?: string;
-}) {
+  onRemove: (p: Product) => Promise<void> | void;
+  deleting: string | null;
+};
+
+const ProductCard = memo(function ProductCard({
+  product,
+  onEdit,
+  onRemove,
+  deleting,
+}: ProductCardProps) {
+  const imageSrc = product.image_url;
+  const description = product.description ?? (product as Product & { biography?: string }).biography ?? "";
+  const colorOptions = (product.colorOptions ?? (product as Product & { colors?: typeof product.colorOptions }).colors ?? (product as Product & { color_options?: typeof product.colorOptions }).color_options ?? []) as Array<{ name: string; hexColor: string }>;
+  const storageOptions = (product.storageOptions ?? (product as Product & { storages?: typeof product.storageOptions }).storages ?? (product as Product & { storage_options?: typeof product.storageOptions }).storage_options ?? []) as Array<{ capacity: string; priceMultiplier: number }>;
+
+  return (
+    <article className="group relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-lg shadow-slate-200/40 dark:shadow-black/40 transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-fuchsia-500/10 flex flex-col">
+      <div className="aspect-video w-full bg-gradient-to-br from-indigo-100 to-fuchsia-100 dark:from-indigo-950/50 dark:to-fuchsia-950/50 relative overflow-hidden">
+        {imageSrc ? (
+          <img
+            src={imageSrc}
+            alt={product.name}
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-slate-400">
+            <ImageOff className="h-8 w-8" />
+          </div>
+        )}
+        <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/60 backdrop-blur px-2 py-0.5 text-[10px] font-medium text-white">
+          <Tag className="h-3 w-3" /> {product.category}
+        </span>
+      </div>
+
+      <div className="p-4 flex-1 flex flex-col">
+        <h3 className="font-semibold text-slate-900 dark:text-white truncate text-sm">{product.name}</h3>
+        {description && (
+          <div className="mt-1">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">Biografía</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{description}</p>
+          </div>
+        )}
+
+        {colorOptions.length > 0 && (
+          <div className="mt-3">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">Colores</p>
+            <div className="mt-1 flex flex-wrap gap-1">
+              {colorOptions.slice(0, 3).map((c, i) => (
+                <div
+                  key={`${c.name || "color"}-${c.hexColor || "#000"}-${i}`}
+                  className="inline-flex items-center gap-1 rounded-full border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/60 px-2 py-0.5"
+                  title={c.name}
+                >
+                  <div
+                    className="h-3 w-3 rounded-full border border-slate-300 dark:border-white/20"
+                    style={{ backgroundColor: c.hexColor }}
+                  />
+                  <span className="text-[10px] text-slate-600 dark:text-slate-300">{c.name}</span>
+                </div>
+              ))}
+              {colorOptions.length > 3 && (
+                <span className="text-[10px] text-slate-500 ml-1">+{colorOptions.length - 3}</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {storageOptions.length > 0 && (
+          <div className="mt-3">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">Gigas</p>
+            <div className="mt-1 flex flex-wrap gap-1">
+              {storageOptions.slice(0, 3).map((storage, i) => (
+                <span
+                  key={`${storage.capacity || "storage"}-${storage.priceMultiplier || 1}-${i}`}
+                  className="rounded-full border border-fuchsia-200 dark:border-fuchsia-500/20 bg-fuchsia-50 dark:bg-fuchsia-500/10 px-2 py-0.5 text-[10px] text-fuchsia-700 dark:text-fuchsia-300"
+                >
+                  {storage.capacity}
+                </span>
+              ))}
+              {storageOptions.length > 3 && (
+                <span className="text-[10px] text-slate-500 ml-1">+{storageOptions.length - 3}</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-3 flex items-center justify-between">
+          <span className="text-lg font-bold bg-gradient-to-r from-indigo-500 to-fuchsia-500 bg-clip-text text-transparent">
+            S/ {Number(product.price).toFixed(2)}
+          </span>
+          <span className="inline-flex items-center gap-1 text-xs text-slate-500">
+            <Boxes className="h-3.5 w-3.5" /> {product.stock}
+          </span>
+        </div>
+
+        <div className="mt-4 flex gap-2">
+          <button
+            onClick={() => onEdit(product)}
+            className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+          >
+            <Pencil className="h-3.5 w-3.5" /> Editar
+          </button>
+          <button
+            disabled={deleting === product.id}
+            onClick={() => onRemove(product)}
+            className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 px-3 py-1.5 text-xs font-medium transition disabled:opacity-50"
+          >
+            <Trash2 className="h-3.5 w-3.5" /> {deleting === product.id ? "..." : "Eliminar"}
+          </button>
+        </div>
+      </div>
+    </article>
+  );
+});
+
+export function ProductList({ onEdit }: { onEdit: (p: Product) => void }) {
   const [products, setProducts] = useState<Product[] | null>(() => readCachedProducts());
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const { db } = getFirebase();
@@ -80,7 +196,7 @@ export function ProductList({
     };
   }, []);
 
-  const remove = async (p: Product) => {
+  const remove = useCallback(async (p: Product) => {
     if (!confirm(`¿Eliminar "${p.name}"?`)) return;
 
     const { db } = getFirebase();
@@ -97,7 +213,7 @@ export function ProductList({
     } finally {
       setDeleting(null);
     }
-  };
+  }, []);
 
   const deferredSearchTerm = useDeferredValue(searchTerm);
 
@@ -117,147 +233,46 @@ export function ProductList({
       .map((item) => item.product);
   }, [productsWithSearch, deferredSearchTerm, products]);
 
-  // ✅ Ya puedes hacer el return del loading
-  if (products === null) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div
-            key={i}
-            className="animate-pulse rounded-2xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-slate-900/60 h-80"
-          />
-        ))}
-      </div>
-    );
-  }
-
-  if (filteredProducts.length === 0) {
-    return (
-      <div className="rounded-2xl border border-dashed border-slate-300 dark:border-white/10 p-12 text-center">
-        <Package className="mx-auto h-10 w-10 text-slate-400" />
-        <h3 className="mt-3 font-semibold text-slate-800 dark:text-white">
-          Sin productos
-        </h3>
-        <p className="mt-1 text-sm text-slate-500">
-          No hay productos que coincidan con la búsqueda.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {filteredProducts.map((p) => {
-        const imageSrc = p.image_url;
-        const description = p.description ?? (p as Product & { biography?: string }).biography ?? "";
-        const colorOptions = (p.colorOptions ?? (p as Product & { colors?: typeof p.colorOptions }).colors ?? (p as Product & { color_options?: typeof p.colorOptions }).color_options ?? []) as Array<{ name: string; hexColor: string }>;
-        const storageOptions = (p.storageOptions ?? (p as Product & { storages?: typeof p.storageOptions }).storages ?? (p as Product & { storage_options?: typeof p.storageOptions }).storage_options ?? []) as Array<{ capacity: string; priceMultiplier: number }>;
+    <div className="space-y-4">
+      <label className="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-slate-900/70 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 shadow-sm">
+        <Search className="h-4 w-4 text-slate-400" />
+        <input
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Buscar producto..."
+          className="w-full bg-transparent outline-none placeholder:text-slate-400"
+        />
+      </label>
 
-        return (
-          <article
-            key={p.id}
-            className="group relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-lg shadow-slate-200/40 dark:shadow-black/40 transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-fuchsia-500/10 flex flex-col"
-          >
-            <div className="aspect-video w-full bg-gradient-to-br from-indigo-100 to-fuchsia-100 dark:from-indigo-950/50 dark:to-fuchsia-950/50 relative overflow-hidden">
-              {imageSrc ? (
-                <img
-                  src={imageSrc}
-                  alt={p.name}
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-slate-400">
-                  <ImageOff className="h-8 w-8" />
-                </div>
-              )}
-              <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/60 backdrop-blur px-2 py-0.5 text-[10px] font-medium text-white">
-                <Tag className="h-3 w-3" /> {p.category}
-              </span>
-            </div>
-
-            <div className="p-4 flex-1 flex flex-col">
-              <h3 className="font-semibold text-slate-900 dark:text-white truncate text-sm">{p.name}</h3>
-              {description && (
-                <div className="mt-1">
-                  <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">Biografía</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{description}</p>
-                </div>
-              )}
-
-              {colorOptions.length > 0 && (
-                <div className="mt-3">
-                  <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">Colores</p>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {colorOptions.slice(0, 3).map((c, i) => (
-                      <div
-                        key={`${c.name || "color"}-${c.hexColor || "#000"}-${i}`}
-                        className="inline-flex items-center gap-1 rounded-full border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/60 px-2 py-0.5"
-                        title={c.name}
-                      >
-                        <div
-                          className="h-3 w-3 rounded-full border border-slate-300 dark:border-white/20"
-                          style={{ backgroundColor: c.hexColor }}
-                        />
-                        <span className="text-[10px] text-slate-600 dark:text-slate-300">{c.name}</span>
-                      </div>
-                    ))}
-                    {colorOptions.length > 3 && (
-                      <span className="text-[10px] text-slate-500 ml-1">+{colorOptions.length - 3}</span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {storageOptions.length > 0 && (
-                <div className="mt-3">
-                  <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">Gigas</p>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {storageOptions.slice(0, 3).map((storage, i) => (
-                      <span
-                        key={`${storage.capacity || "storage"}-${storage.priceMultiplier || 1}-${i}`}
-                        className="rounded-full border border-fuchsia-200 dark:border-fuchsia-500/20 bg-fuchsia-50 dark:bg-fuchsia-500/10 px-2 py-0.5 text-[10px] text-fuchsia-700 dark:text-fuchsia-300"
-                      >
-                        {storage.capacity}
-                      </span>
-                    ))}
-                    {storageOptions.length > 3 && (
-                      <span className="text-[10px] text-slate-500 ml-1">+{storageOptions.length - 3}</span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-3 flex items-center justify-between">
-                <span className="text-lg font-bold bg-gradient-to-r from-indigo-500 to-fuchsia-500 bg-clip-text text-transparent">
-                  S/ {Number(p.price).toFixed(2)}
-                </span>
-                <span className="inline-flex items-center gap-1 text-xs text-slate-500">
-                  <Boxes className="h-3.5 w-3.5" /> {p.stock}
-                </span>
-              </div>
-
-              <div className="mt-4 flex gap-2">
-                <button
-                  onClick={() => onEdit(p)}
-                  className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-                >
-                  <Pencil className="h-3.5 w-3.5" /> Editar
-                </button>
-                <button
-                  disabled={deleting === p.id}
-                  onClick={() => remove(p)}
-                  className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 px-3 py-1.5 text-xs font-medium transition disabled:opacity-50"
-                >
-                  <Trash2 className="h-3.5 w-3.5" /> {deleting === p.id ? "..." : "Eliminar"}
-                </button>
-              </div>
-            </div>
-          </article>
-        );
-      })}
+      {products === null ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="animate-pulse rounded-2xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-slate-900/60 h-80"
+            />
+          ))}
+        </div>
+      ) : filteredProducts.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-slate-300 dark:border-white/10 p-12 text-center">
+          <Package className="mx-auto h-10 w-10 text-slate-400" />
+          <h3 className="mt-3 font-semibold text-slate-800 dark:text-white">Sin productos</h3>
+          <p className="mt-1 text-sm text-slate-500">No hay productos que coincidan con la búsqueda.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filteredProducts.map((p) => (
+            <ProductCard
+              key={p.id}
+              product={p}
+              onEdit={onEdit}
+              onRemove={remove}
+              deleting={deleting}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { t as getFirebase } from "./firebase-nyhvcZA1.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
 import { n as toast } from "../_libs/sonner.mjs";
 import { d as Plus, g as LoaderCircle, r as Trash2, t as X, u as Save } from "../_libs/lucide-react.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/ProductForm-DQmi2kjH.js
+//#region node_modules/.nitro/vite/services/ssr/assets/ProductForm-BH1sAVMJ.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function dispatchProductChanged(product) {
@@ -509,4 +509,4 @@ function Field({ label, children, className = "" }) {
 	});
 }
 //#endregion
-export { removeProductInList as a, normalizeProductData as i, dispatchProductRemoved as n, upsertProductInList as o, getProductSearchText as r, ProductForm as t };
+export { normalizeProductData as a, getProductSearchText as i, dispatchProductChanged as n, removeProductInList as o, dispatchProductRemoved as r, upsertProductInList as s, ProductForm as t };

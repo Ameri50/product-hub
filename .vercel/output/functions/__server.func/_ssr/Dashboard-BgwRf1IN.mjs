@@ -7,13 +7,133 @@ import { n as useAuth } from "./auth-context-Dj2eZIgJ.mjs";
 import { h as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { n as toast } from "../_libs/sonner.mjs";
 import { _ as LayoutGrid, a as Sparkles, b as Boxes, f as Pencil, g as LoaderCircle, i as Tag, l as Search, m as LogOut, n as Users, o as ShoppingBag, p as Package, r as Trash2, v as ImageOff, y as DatabaseZap } from "../_libs/lucide-react.mjs";
-import { a as removeProductInList, i as normalizeProductData, n as dispatchProductRemoved, o as upsertProductInList, r as getProductSearchText, t as ProductForm } from "./ProductForm-DQmi2kjH.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/Dashboard-CAAMAJ55.js
+import { a as normalizeProductData, i as getProductSearchText, o as removeProductInList, r as dispatchProductRemoved, s as upsertProductInList, t as ProductForm } from "./ProductForm-BH1sAVMJ.mjs";
+import { n as writeCachedProducts, t as readCachedProducts } from "./product-cache-DsASDscr.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/Dashboard-BgwRf1IN.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
-function ProductList({ onEdit, searchTerm = "" }) {
+var ProductCard = (0, import_react.memo)(function ProductCard({ product, onEdit, onRemove, deleting }) {
+	const imageSrc = product.image_url;
+	const description = product.description ?? product.biography ?? "";
+	const colorOptions = product.colorOptions ?? product.colors ?? product.color_options ?? [];
+	const storageOptions = product.storageOptions ?? product.storages ?? product.storage_options ?? [];
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", {
+		className: "group relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-lg shadow-slate-200/40 dark:shadow-black/40 transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-fuchsia-500/10 flex flex-col",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "aspect-video w-full bg-gradient-to-br from-indigo-100 to-fuchsia-100 dark:from-indigo-950/50 dark:to-fuchsia-950/50 relative overflow-hidden",
+			children: [imageSrc ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+				src: imageSrc,
+				alt: product.name,
+				className: "h-full w-full object-cover transition duration-500 group-hover:scale-105",
+				onError: (e) => {
+					e.currentTarget.style.display = "none";
+				}
+			}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "flex h-full w-full items-center justify-center text-slate-400",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ImageOff, { className: "h-8 w-8" })
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+				className: "absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/60 backdrop-blur px-2 py-0.5 text-[10px] font-medium text-white",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, { className: "h-3 w-3" }),
+					" ",
+					product.category
+				]
+			})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "p-4 flex-1 flex flex-col",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+					className: "font-semibold text-slate-900 dark:text-white truncate text-sm",
+					children: product.name
+				}),
+				description && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mt-1",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-[11px] font-medium uppercase tracking-wide text-slate-400",
+						children: "Biografía"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-xs text-slate-500 dark:text-slate-400 line-clamp-2",
+						children: description
+					})]
+				}),
+				colorOptions.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mt-3",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-[11px] font-medium uppercase tracking-wide text-slate-400",
+						children: "Colores"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "mt-1 flex flex-wrap gap-1",
+						children: [colorOptions.slice(0, 3).map((c, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "inline-flex items-center gap-1 rounded-full border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/60 px-2 py-0.5",
+							title: c.name,
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "h-3 w-3 rounded-full border border-slate-300 dark:border-white/20",
+								style: { backgroundColor: c.hexColor }
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "text-[10px] text-slate-600 dark:text-slate-300",
+								children: c.name
+							})]
+						}, `${c.name || "color"}-${c.hexColor || "#000"}-${i}`)), colorOptions.length > 3 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							className: "text-[10px] text-slate-500 ml-1",
+							children: ["+", colorOptions.length - 3]
+						})]
+					})]
+				}),
+				storageOptions.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mt-3",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-[11px] font-medium uppercase tracking-wide text-slate-400",
+						children: "Gigas"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "mt-1 flex flex-wrap gap-1",
+						children: [storageOptions.slice(0, 3).map((storage, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "rounded-full border border-fuchsia-200 dark:border-fuchsia-500/20 bg-fuchsia-50 dark:bg-fuchsia-500/10 px-2 py-0.5 text-[10px] text-fuchsia-700 dark:text-fuchsia-300",
+							children: storage.capacity
+						}, `${storage.capacity || "storage"}-${storage.priceMultiplier || 1}-${i}`)), storageOptions.length > 3 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+							className: "text-[10px] text-slate-500 ml-1",
+							children: ["+", storageOptions.length - 3]
+						})]
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mt-3 flex items-center justify-between",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: "text-lg font-bold bg-gradient-to-r from-indigo-500 to-fuchsia-500 bg-clip-text text-transparent",
+						children: ["S/ ", Number(product.price).toFixed(2)]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: "inline-flex items-center gap-1 text-xs text-slate-500",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Boxes, { className: "h-3.5 w-3.5" }),
+							" ",
+							product.stock
+						]
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mt-4 flex gap-2",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						onClick: () => onEdit(product),
+						className: "flex-1 inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { className: "h-3.5 w-3.5" }), " Editar"]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						disabled: deleting === product.id,
+						onClick: () => onRemove(product),
+						className: "flex-1 inline-flex items-center justify-center gap-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 px-3 py-1.5 text-xs font-medium transition disabled:opacity-50",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "h-3.5 w-3.5" }),
+							" ",
+							deleting === product.id ? "..." : "Eliminar"
+						]
+					})]
+				})
+			]
+		})]
+	});
+});
+function ProductList({ onEdit }) {
 	const [products, setProducts] = (0, import_react.useState)(() => readCachedProducts());
 	const [deleting, setDeleting] = (0, import_react.useState)(null);
+	const [searchTerm, setSearchTerm] = (0, import_react.useState)("");
 	(0, import_react.useEffect)(() => {
 		const { db } = getFirebase();
 		if (!db) return;
@@ -48,7 +168,7 @@ function ProductList({ onEdit, searchTerm = "" }) {
 			unsub();
 		};
 	}, []);
-	const remove = async (p) => {
+	const remove = (0, import_react.useCallback)(async (p) => {
 		if (!confirm(`¿Eliminar "${p.name}"?`)) return;
 		const { db } = getFirebase();
 		if (!db) return;
@@ -62,7 +182,7 @@ function ProductList({ onEdit, searchTerm = "" }) {
 		} finally {
 			setDeleting(null);
 		}
-	};
+	}, []);
 	const deferredSearchTerm = (0, import_react.useDeferredValue)(searchTerm);
 	const productsWithSearch = (0, import_react.useMemo)(() => {
 		return (products ?? []).map((product) => ({
@@ -79,144 +199,41 @@ function ProductList({ onEdit, searchTerm = "" }) {
 		deferredSearchTerm,
 		products
 	]);
-	if (products === null) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-		className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4",
-		children: Array.from({ length: 4 }).map((_, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "animate-pulse rounded-2xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-slate-900/60 h-80" }, i))
-	});
-	if (filteredProducts.length === 0) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "rounded-2xl border border-dashed border-slate-300 dark:border-white/10 p-12 text-center",
-		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Package, { className: "mx-auto h-10 w-10 text-slate-400" }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
-				className: "mt-3 font-semibold text-slate-800 dark:text-white",
-				children: "Sin productos"
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-				className: "mt-1 text-sm text-slate-500",
-				children: "No hay productos que coincidan con la búsqueda."
-			})
-		]
-	});
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-		className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4",
-		children: filteredProducts.map((p) => {
-			const imageSrc = p.image_url;
-			const description = p.description ?? p.biography ?? "";
-			const colorOptions = p.colorOptions ?? p.colors ?? p.color_options ?? [];
-			const storageOptions = p.storageOptions ?? p.storages ?? p.storage_options ?? [];
-			return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", {
-				className: "group relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-lg shadow-slate-200/40 dark:shadow-black/40 transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-fuchsia-500/10 flex flex-col",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "aspect-video w-full bg-gradient-to-br from-indigo-100 to-fuchsia-100 dark:from-indigo-950/50 dark:to-fuchsia-950/50 relative overflow-hidden",
-					children: [imageSrc ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
-						src: imageSrc,
-						alt: p.name,
-						className: "h-full w-full object-cover transition duration-500 group-hover:scale-105",
-						onError: (e) => {
-							e.currentTarget.style.display = "none";
-						}
-					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						className: "flex h-full w-full items-center justify-center text-slate-400",
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ImageOff, { className: "h-8 w-8" })
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-						className: "absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/60 backdrop-blur px-2 py-0.5 text-[10px] font-medium text-white",
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, { className: "h-3 w-3" }),
-							" ",
-							p.category
-						]
-					})]
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "p-4 flex-1 flex flex-col",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
-							className: "font-semibold text-slate-900 dark:text-white truncate text-sm",
-							children: p.name
-						}),
-						description && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "mt-1",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-								className: "text-[11px] font-medium uppercase tracking-wide text-slate-400",
-								children: "Biografía"
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-								className: "text-xs text-slate-500 dark:text-slate-400 line-clamp-2",
-								children: description
-							})]
-						}),
-						colorOptions.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "mt-3",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-								className: "text-[11px] font-medium uppercase tracking-wide text-slate-400",
-								children: "Colores"
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "mt-1 flex flex-wrap gap-1",
-								children: [colorOptions.slice(0, 3).map((c, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "inline-flex items-center gap-1 rounded-full border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/60 px-2 py-0.5",
-									title: c.name,
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-										className: "h-3 w-3 rounded-full border border-slate-300 dark:border-white/20",
-										style: { backgroundColor: c.hexColor }
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-										className: "text-[10px] text-slate-600 dark:text-slate-300",
-										children: c.name
-									})]
-								}, `${c.name || "color"}-${c.hexColor || "#000"}-${i}`)), colorOptions.length > 3 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-									className: "text-[10px] text-slate-500 ml-1",
-									children: ["+", colorOptions.length - 3]
-								})]
-							})]
-						}),
-						storageOptions.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "mt-3",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-								className: "text-[11px] font-medium uppercase tracking-wide text-slate-400",
-								children: "Gigas"
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "mt-1 flex flex-wrap gap-1",
-								children: [storageOptions.slice(0, 3).map((storage, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									className: "rounded-full border border-fuchsia-200 dark:border-fuchsia-500/20 bg-fuchsia-50 dark:bg-fuchsia-500/10 px-2 py-0.5 text-[10px] text-fuchsia-700 dark:text-fuchsia-300",
-									children: storage.capacity
-								}, `${storage.capacity || "storage"}-${storage.priceMultiplier || 1}-${i}`)), storageOptions.length > 3 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-									className: "text-[10px] text-slate-500 ml-1",
-									children: ["+", storageOptions.length - 3]
-								})]
-							})]
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "mt-3 flex items-center justify-between",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-								className: "text-lg font-bold bg-gradient-to-r from-indigo-500 to-fuchsia-500 bg-clip-text text-transparent",
-								children: ["S/ ", Number(p.price).toFixed(2)]
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-								className: "inline-flex items-center gap-1 text-xs text-slate-500",
-								children: [
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Boxes, { className: "h-3.5 w-3.5" }),
-									" ",
-									p.stock
-								]
-							})]
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "mt-4 flex gap-2",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-								onClick: () => onEdit(p),
-								className: "flex-1 inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { className: "h-3.5 w-3.5" }), " Editar"]
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-								disabled: deleting === p.id,
-								onClick: () => remove(p),
-								className: "flex-1 inline-flex items-center justify-center gap-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 px-3 py-1.5 text-xs font-medium transition disabled:opacity-50",
-								children: [
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "h-3.5 w-3.5" }),
-									" ",
-									deleting === p.id ? "..." : "Eliminar"
-								]
-							})]
-						})
-					]
-				})]
-			}, p.id);
-		})
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "space-y-4",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+			className: "flex items-center gap-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-slate-900/70 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 shadow-sm",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { className: "h-4 w-4 text-slate-400" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+				value: searchTerm,
+				onChange: (e) => setSearchTerm(e.target.value),
+				placeholder: "Buscar producto...",
+				className: "w-full bg-transparent outline-none placeholder:text-slate-400"
+			})]
+		}), products === null ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4",
+			children: Array.from({ length: 4 }).map((_, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "animate-pulse rounded-2xl border border-slate-200/60 dark:border-white/10 bg-white dark:bg-slate-900/60 h-80" }, i))
+		}) : filteredProducts.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "rounded-2xl border border-dashed border-slate-300 dark:border-white/10 p-12 text-center",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Package, { className: "mx-auto h-10 w-10 text-slate-400" }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+					className: "mt-3 font-semibold text-slate-800 dark:text-white",
+					children: "Sin productos"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "mt-1 text-sm text-slate-500",
+					children: "No hay productos que coincidan con la búsqueda."
+				})
+			]
+		}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4",
+			children: filteredProducts.map((p) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ProductCard, {
+				product: p,
+				onEdit,
+				onRemove: remove,
+				deleting
+			}, p.id))
+		})]
 	});
 }
 var C = {
@@ -1235,7 +1252,6 @@ function SeedCatalogButton() {
 function Dashboard() {
 	const { user, logout } = useAuth();
 	const [editing, setEditing] = (0, import_react.useState)(null);
-	const [searchTerm, setSearchTerm] = (0, import_react.useState)("");
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/40 to-fuchsia-50/40 dark:from-slate-950 dark:via-indigo-950/40 dark:to-fuchsia-950/40",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("header", {
@@ -1272,6 +1288,11 @@ function Dashboard() {
 							className: "inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-slate-900/80 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Users, { className: "h-3.5 w-3.5" }), " Usuarios"]
 						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
+							to: "/productos-sin-imagen",
+							className: "inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-slate-900/80 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ImageOff, { className: "h-3.5 w-3.5" }), " Sin imagen"]
+						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							onClick: async () => {
 								await logout();
@@ -1293,22 +1314,8 @@ function Dashboard() {
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
 					className: "text-lg font-semibold text-slate-900 dark:text-white",
 					children: "Productos"
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "flex flex-col sm:flex-row gap-2 sm:items-center",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
-						className: "flex items-center gap-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-slate-900/70 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 shadow-sm",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { className: "h-4 w-4 text-slate-400" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
-							value: searchTerm,
-							onChange: (e) => setSearchTerm(e.target.value),
-							placeholder: "Buscar producto...",
-							className: "w-full sm:w-56 bg-transparent outline-none placeholder:text-slate-400"
-						})]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SeedCatalogButton, {})]
-				})]
-			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ProductList, {
-				onEdit: setEditing,
-				searchTerm
-			})] })]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SeedCatalogButton, {})]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ProductList, { onEdit: setEditing })] })]
 		})]
 	});
 }

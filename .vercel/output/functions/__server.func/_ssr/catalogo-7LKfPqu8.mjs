@@ -4,28 +4,11 @@ import { r as onSnapshot, s as collection } from "../_libs/@firebase/firestore+[
 import { t as getFirebase } from "./firebase-nyhvcZA1.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
 import { h as Link } from "../_libs/@tanstack/react-router+[...].mjs";
-import { i as normalizeProductData, r as getProductSearchText } from "./ProductForm-DQmi2kjH.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/catalogo-U6eQzwnb.js
+import { a as normalizeProductData, i as getProductSearchText } from "./ProductForm-BH1sAVMJ.mjs";
+import { n as writeCachedProducts, t as readCachedProducts } from "./product-cache-DsASDscr.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/catalogo-7LKfPqu8.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
-var PRODUCT_CACHE_KEY = "product-catalog-cache";
-function readCachedProducts() {
-	if (typeof window === "undefined") return [];
-	try {
-		const raw = window.localStorage.getItem(PRODUCT_CACHE_KEY);
-		if (!raw) return [];
-		const parsed = JSON.parse(raw);
-		return Array.isArray(parsed) ? parsed : [];
-	} catch {
-		return [];
-	}
-}
-function writeCachedProducts(products) {
-	if (typeof window === "undefined") return;
-	try {
-		window.localStorage.setItem(PRODUCT_CACHE_KEY, JSON.stringify(products));
-	} catch {}
-}
 function CatalogoPage() {
 	const [products, setProducts] = (0, import_react.useState)(() => readCachedProducts());
 	const [loading, setLoading] = (0, import_react.useState)(() => readCachedProducts().length === 0);
