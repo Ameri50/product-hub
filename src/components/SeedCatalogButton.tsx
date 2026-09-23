@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { collection, doc, writeBatch, serverTimestamp } from "firebase/firestore";
+import { collection, doc, getDocs, writeBatch, serverTimestamp } from "firebase/firestore";
 import { getFirebase } from "@/lib/firebase";
 import { toast } from "sonner";
 import { Loader2, DatabaseZap } from "lucide-react";
@@ -15,8 +15,8 @@ export function SeedCatalogButton() {
 
   const runSeed = async () => {
     const confirmed = window.confirm(
-      `Esto va a agregar ${appleProductsSeed.length} productos nuevos a Firestore ` +
-        `(no borra los existentes, ni evita duplicados si ya sembraste antes). ¿Continuar?`
+      `Esto agrega/actualiza ${appleProductsSeed.length} productos en Firestore. ` +
+        `Los que ya existan (mismo nombre) se actualizan en su lugar, sin duplicarlos. ¿Continuar?`
     );
     if (!confirmed) return;
 
@@ -30,12 +30,23 @@ export function SeedCatalogButton() {
     let written = 0;
 
     try {
+      const productsRef = collection(db, "products");
+      const existingSnap = await getDocs(productsRef);
+      const existingIdByName = new Map<string, string>();
+      existingSnap.forEach((docSnap) => {
+        const name = (docSnap.data() as { name?: string }).name;
+        if (name && !existingIdByName.has(name)) {
+          existingIdByName.set(name, docSnap.id);
+        }
+      });
+
       for (let i = 0; i < appleProductsSeed.length; i += BATCH_SIZE) {
         const chunk = appleProductsSeed.slice(i, i + BATCH_SIZE);
         const batch = writeBatch(db);
 
         for (const p of chunk) {
-          const ref = doc(collection(db, "products"));
+          const existingId = existingIdByName.get(p.name);
+          const ref = existingId ? doc(db, "products", existingId) : doc(productsRef);
           batch.set(ref, {
             name: p.name,
             price: p.price,
@@ -49,7 +60,7 @@ export function SeedCatalogButton() {
             storageOptions: p.storageOptions,
             storages: p.storageOptions,
             created_at: serverTimestamp(),
-          });
+          }, { merge: true });
         }
 
         await batch.commit();
@@ -57,7 +68,7 @@ export function SeedCatalogButton() {
         setProgress(`${written} / ${appleProductsSeed.length}`);
       }
 
-      toast.success(`Catálogo sembrado: ${written} productos agregados`);
+      toast.success(`Catálogo sembrado/actualizado: ${written} productos`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al sembrar el catálogo");
     } finally {
@@ -72,10 +83,10 @@ export function SeedCatalogButton() {
       onClick={runSeed}
       disabled={seeding}
       className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/60 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition disabled:opacity-60"
-      title={`Agrega los ${appleProductsSeed.length} productos del catálogo Apple a Firestore`}
+      title={`Agrega o actualiza (por nombre) los ${appleProductsSeed.length} productos del catálogo Apple en Firestore`}
     >
       {seeding ? <Loader2 className="h-4 w-4 animate-spin" /> : <DatabaseZap className="h-4 w-4" />}
-      {seeding ? progress ?? "Sembrando..." : "Sembrar catálogo completo"}
+      {seeding ? progress ?? "Sembrando..." : "Sembrar / actualizar catálogo"}
     </button>
   );
 }
