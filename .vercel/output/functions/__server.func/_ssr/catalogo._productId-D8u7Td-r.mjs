@@ -1,12 +1,12 @@
 import { o as __toESM } from "../_runtime.mjs";
 import "../_libs/firebase.mjs";
-import { c as doc, r as onSnapshot } from "../_libs/@firebase/firestore+[...].mjs";
+import { r as getDoc, u as doc } from "../_libs/@firebase/firestore+[...].mjs";
 import { t as getFirebase } from "./firebase-nyhvcZA1.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
 import { h as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { a as normalizeProductData } from "./ProductForm-BH1sAVMJ.mjs";
-import { t as Route } from "./catalogo._productId-BQa841od.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/catalogo._productId-CH1eVvC9.js
+import { t as Route } from "./catalogo._productId-C4VKsBqS.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/catalogo._productId-D8u7Td-r.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function ProductDetailPage() {
@@ -15,7 +15,9 @@ function ProductDetailPage() {
 	(0, import_react.useEffect)(() => {
 		const { db } = getFirebase();
 		if (!db) return;
-		return onSnapshot(doc(db, "products", productId), (snap) => {
+		let cancelled = false;
+		getDoc(doc(db, "products", productId)).then((snap) => {
+			if (cancelled) return;
 			if (snap.exists()) {
 				const raw = {
 					id: snap.id,
@@ -23,7 +25,12 @@ function ProductDetailPage() {
 				};
 				setProduct(normalizeProductData(raw));
 			} else setProduct(null);
+		}).catch(() => {
+			if (!cancelled) setProduct(null);
 		});
+		return () => {
+			cancelled = true;
+		};
 	}, [productId]);
 	if (product === void 0) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 		className: "min-h-screen bg-gradient-to-br from-indigo-950 via-slate-950 to-fuchsia-950 flex items-center justify-center",
@@ -63,6 +70,8 @@ function ProductDetailPage() {
 					children: imageSrc ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
 						src: imageSrc,
 						alt: productName,
+						loading: "lazy",
+						decoding: "async",
 						className: "w-full h-full object-cover"
 					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 						className: "w-full h-full flex items-center justify-center text-slate-600",

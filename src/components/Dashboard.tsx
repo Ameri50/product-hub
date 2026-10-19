@@ -3,6 +3,7 @@ import { useAuth } from "@/lib/auth-context";
 import { ProductForm, type Product } from "./ProductForm";
 import { ProductList } from "./ProductList";
 import { SeedCatalogButton } from "./SeedCatalogButton";
+import { CleanupDuplicatesButton } from "./CleanupDuplicatesButton";
 import { ImageOff, LogOut, Sparkles, LayoutGrid, ShoppingBag, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
@@ -69,7 +70,10 @@ export function Dashboard() {
         <section>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Productos</h2>
-            <SeedCatalogButton />
+            <div className="flex flex-wrap gap-2">
+              <SeedCatalogButton />
+              <CleanupDuplicatesButton />
+            </div>
           </div>
           <ProductList onEdit={setEditing} />
         </section>

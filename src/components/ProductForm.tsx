@@ -52,6 +52,10 @@ export function normalizeProductData(product: Partial<Product> & Record<string, 
   return {
     ...(product as Product),
     name: product.name || product.product_name || "",
+    // La app iOS y datos antiguos usan "imageURL"; la web usa "image_url".
+    // Unificar aquí para que el catálogo siempre tenga la URL. (imageName es
+    // un nombre de asset local de la app, no una URL, así que no se usa.)
+    image_url: product.image_url || product.imageURL || "",
     description: product.description || product.biography || "",
     biography: product.biography || product.description || "",
     colorOptions: normalizedColors,

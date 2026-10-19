@@ -1,10 +1,15 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  type AuthError,
+  type User,
+} from "firebase/auth";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { getFirebase } from "./firebase";
 import { isAdminEmail } from "./admin";
-
-const ALLOWED_ADMIN_EMAILS = ["joshuarojas432@gmail.com", "promo2026@outlook.com"];
 
 type AuthCtx = {
   user: User | null;
@@ -36,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // es un admin conocido. Un usuario cualquiera que inicie sesión
       // (por ejemplo, con una cuenta de la app móvil) no debe poder
       // escribir en "users" desde este panel.
-      if (!u.email || !ALLOWED_ADMIN_EMAILS.includes(u.email.toLowerCase())) return;
+      if (!isAdminEmail(u.email)) return;
 
       await setDoc(
         doc(db, "users", u.uid),
@@ -57,8 +62,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string) => {
     const { auth } = getFirebase();
     if (!auth) throw new Error("Firebase no está listo");
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    if (!userCredential.user.email) {
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      const code = (err as AuthError).code;
+      const accountMissing = code === "auth/user-not-found" || code === "auth/invalid-credential";
+      // Auto-provisión: si el email está en la lista de admins y la cuenta no
+      // existe todavía, se crea con la contraseña indicada (evita tener que
+      // crearla a mano desde la consola de Firebase).
+      if (!accountMissing || !isAdminEmail(email)) throw err;
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } catch (createErr) {
+        if ((createErr as AuthError).code === "auth/email-already-in-use") {
+          throw new Error("La cuenta existe pero la contraseña no coincide");
+        }
+        throw createErr;
+      }
+    }
+
+    if (!auth.currentUser?.email) {
       throw new Error("No se pudo identificar la cuenta");
     }
   };
@@ -69,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signOut(auth);
   };
 
-  const isAdmin = Boolean(user?.email && ALLOWED_ADMIN_EMAILS.includes(user.email.toLowerCase()));
+  const isAdmin = isAdminEmail(user?.email);
 
   return (
     <Ctx.Provider value={{ user, loading, isAdmin, signIn, logout }}>{children}</Ctx.Provider>

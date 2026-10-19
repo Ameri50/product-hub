@@ -68307,6 +68307,35 @@ function targetOrPipelineEqual(left, right) {
 function pipelineHasRanges(pipeline) {
 	return pipeline.stages.some((stage) => stage instanceof Limit || stage instanceof Offset);
 }
+function rewriteStages(stages) {
+	let hasOrder = false;
+	const newStages = [];
+	for (const stage of stages) if (stage instanceof Sort) {
+		hasOrder = true;
+		if (stage.orderings.some((order) => order.expr instanceof Field && order.expr.fieldName === DOCUMENT_KEY_NAME)) newStages.push(stage);
+		else {
+			const copy = stage.orderings.map((o) => o);
+			copy.push(field(DOCUMENT_KEY_NAME).ascending());
+			newStages.push(new Sort(copy, {}));
+		}
+	} else if (stage instanceof Limit) {
+		if (!hasOrder) {
+			newStages.push(new Sort([field(DOCUMENT_KEY_NAME).ascending()], {}));
+			hasOrder = true;
+		}
+		newStages.push(stage);
+	} else newStages.push(stage);
+	if (!hasOrder) newStages.push(new Sort([field(DOCUMENT_KEY_NAME).ascending()], {}));
+	return newStages;
+}
+function toCorePipeline(p, listenOptions) {
+	const newStages = rewriteStages(p.stages);
+	if (p.userDataReader) {
+		const context = p.userDataReader.createContext(3, "toCorePipeline");
+		newStages.forEach((stage) => stage._readUserData(context));
+	}
+	return new CorePipeline(p.userDataReader.serializer, newStages, listenOptions);
+}
 /**
 * @license
 * Copyright 2017 Google LLC
@@ -73652,6 +73681,96 @@ OnlineComponentProvider.provider = { build: () => new OnlineComponentProvider() 
 * limitations under the License.
 */
 /**
+* @beta
+* @internal
+*
+* The RealtimePipeline class provides a flexible and expressive framework for building complex data
+* transformation and query pipelines that can be used with Firestore's real-time and offline capabilities.
+*
+* A RealtimePipeline takes data sources, such as Firestore collections or collection groups, and applies
+* a series of stages that are chained together. Each stage takes the output from the previous stage
+* (or the data source) and produces an output for the next stage (or as the final output of the
+* pipeline).
+*
+* Expressions can be used within each stage to filter and transform data through the stage.
+*
+* NOTE: Both the initial and subsequent snapshots for RealtimePipeline take the consideration of the SDK's cache.
+* They might include results that have not been synchronized with the server yet, and wait for subsequent snapshots
+* to reflect the latest server state, this is the same as classic Firestore {@link Query}.
+* This behavior is different from the {@link Pipeline} class, which does not take the consideration of the SDK's cache.
+*
+* Usage Examples:
+*
+* ```typescript
+* const db: Firestore; // Assumes a valid firestore instance.
+*
+* // Example 1: Listen to books published after 1980
+* const unsubscribe = onRealtimePipelineSnapshot(db.realtimePipeline()
+*     .collection("books")
+*     .where(field("published").gt(1980)),
+*     (snapshot) => {
+*       // Handle the snapshot
+*     }
+* );
+* ```
+*/
+var RealtimePipeline = class RealtimePipeline {
+	/**
+	* @internal
+	* @private
+	* @param _db
+	* @param userDataReader
+	* @param _userDataWriter
+	* @param _documentReferenceFactory
+	* @param stages
+	*/
+	constructor(_db, userDataReader, _userDataWriter, stages) {
+		this._db = _db;
+		this.userDataReader = userDataReader;
+		this._userDataWriter = _userDataWriter;
+		this.stages = stages;
+	}
+	/**
+	* Reads user data for each expression in the expressionMap.
+	* @param name Name of the calling function. Used for error messages when invalid user data is encountered.
+	* @param expressionMap
+	* @return the expressionMap argument.
+	* @private
+	* @internal
+	*/
+	readUserData(name, expressionMap) {
+		const context = this.userDataReader.createContext(3, name);
+		if (isUserData(expressionMap)) expressionMap._readUserData(context);
+		else if (Array.isArray(expressionMap)) expressionMap.forEach((readableData) => readableData._readUserData(context));
+		else expressionMap.forEach((expr) => expr._readUserData(context));
+		return expressionMap;
+	}
+	where(condition) {
+		const copy = this.stages.map((s) => s);
+		this.readUserData("where", condition);
+		copy.push(new Where(condition, {}));
+		return new RealtimePipeline(this._db, this.userDataReader, this._userDataWriter, copy);
+	}
+	limit(limit) {
+		const copy = this.stages.map((s) => s);
+		copy.push(new Limit(limit, {}));
+		return new RealtimePipeline(this._db, this.userDataReader, this._userDataWriter, copy);
+	}
+	sort(optionsOrOrderings, ...rest) {
+		const copy = this.stages.map((s) => s);
+		if ("orderings" in optionsOrOrderings) copy.push(new Sort(this.readUserData("sort", optionsOrOrderings.orderings), {}));
+		else copy.push(new Sort(this.readUserData("sort", [optionsOrOrderings, ...rest]), {}));
+		return new RealtimePipeline(this._db, this.userDataReader, this._userDataWriter, copy);
+	}
+	/**
+	* @internal
+	* @private
+	*/
+	_toStructuredPipeline(jsonProtoSerializer) {
+		return { pipeline: { stages: this.stages.map((stage) => stage._toProto(jsonProtoSerializer)) } };
+	}
+};
+/**
 * @license
 * Copyright 2020 Google LLC
 *
@@ -73974,12 +74093,71 @@ function firestoreClientListen(client, query, options, observer) {
 		});
 	};
 }
+function firestoreClientGetDocumentViaSnapshotListener(client, key, options = {}) {
+	const deferred = new Deferred();
+	client.asyncQueue.enqueueAndForget(async () => {
+		return readDocumentViaSnapshotListener(await getEventManager(client), client.asyncQueue, key, options, deferred);
+	});
+	return deferred.promise;
+}
+function firestoreClientGetDocumentsViaSnapshotListener(client, query, options = {}) {
+	const deferred = new Deferred();
+	client.asyncQueue.enqueueAndForget(async () => {
+		return executeQueryViaSnapshotListener(await getEventManager(client), client.asyncQueue, query, options, deferred);
+	});
+	return deferred.promise;
+}
 function firestoreClientWrite(client, mutations) {
 	const deferred = new Deferred();
 	client.asyncQueue.enqueueAndForget(async () => {
 		return syncEngineWrite(await getSyncEngine(client), mutations, deferred);
 	});
 	return deferred.promise;
+}
+/**
+* Retrieves a latency-compensated document from the backend via a
+* SnapshotListener.
+*/
+function readDocumentViaSnapshotListener(eventManager, asyncQueue, key, options, result) {
+	const wrappedObserver = new AsyncObserver({
+		next: (snap) => {
+			wrappedObserver.mute();
+			asyncQueue.enqueueAndForget(() => eventManagerUnlisten(eventManager, listener));
+			const exists = snap.docs.has(key);
+			if (!exists && snap.fromCache) result.reject(new FirestoreError(Code.UNAVAILABLE, "Failed to get document because the client is offline."));
+			else if (exists && snap.fromCache && options && options.source === "server") result.reject(new FirestoreError(Code.UNAVAILABLE, "Failed to get document from server. (However, this document does exist in the local cache. Run again without setting source to \"server\" to retrieve the cached document.)"));
+			else result.resolve(snap);
+		},
+		error: (e) => result.reject(e)
+	});
+	const listener = new QueryListener(newQueryForPath(key.path), wrappedObserver, {
+		includeMetadataChanges: true,
+		waitForSyncWhenOnline: true
+	});
+	return eventManagerListen(eventManager, listener);
+}
+/**
+* Retrieves a latency-compensated query snapshot from the backend via a
+* SnapshotListener.
+*/
+function executeQueryViaSnapshotListener(eventManager, asyncQueue, query, options, result) {
+	const wrappedObserver = new AsyncObserver({
+		next: (snapshot) => {
+			wrappedObserver.mute();
+			asyncQueue.enqueueAndForget(() => eventManagerUnlisten(eventManager, listener));
+			if (snapshot.fromCache && options.source === "server") result.reject(new FirestoreError(Code.UNAVAILABLE, "Failed to get documents from server. (However, these documents may exist in the local cache. Run again without setting source to \"server\" to retrieve the cached documents.)"));
+			else result.resolve(snapshot);
+		},
+		error: (e) => result.reject(e)
+	});
+	const listener = query instanceof RealtimePipeline ? new QueryListener(toCorePipeline(query), wrappedObserver, {
+		includeMetadataChanges: true,
+		waitForSyncWhenOnline: true
+	}) : new QueryListener(query, wrappedObserver, {
+		includeMetadataChanges: true,
+		waitForSyncWhenOnline: true
+	});
+	return eventManagerListen(eventManager, listener);
 }
 /**
 * @license
@@ -75455,6 +75633,31 @@ function implementsAnyMethods(obj, methods) {
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+/**
+* Reads the document referred to by this `DocumentReference`.
+*
+* Note: `getDoc()` attempts to provide up-to-date data when possible by waiting
+* for data from the server, but it may return cached data or fail if you are
+* offline and the server cannot be reached. To specify this behavior, invoke
+* {@link getDocFromCache} or {@link getDocFromServer}.
+*
+* @param reference - The reference of the document to fetch.
+* @returns A `Promise` that resolves with a `DocumentSnapshot` containing the
+* document contents.
+*/
+function getDoc(reference) {
+	reference = cast(reference, DocumentReference);
+	const firestore = cast(reference.firestore, Firestore);
+	return firestoreClientGetDocumentViaSnapshotListener(ensureFirestoreConfigured(firestore), reference._key).then((snapshot) => convertToDocSnapshot(firestore, reference, snapshot));
+}
+function getDocs(query) {
+	query = cast(query, Query);
+	const firestore = cast(query.firestore, Firestore);
+	const client = ensureFirestoreConfigured(firestore);
+	const userDataWriter = new ExpUserDataWriter(firestore);
+	validateHasExplicitOrderByForLimitToLast(query._query);
+	return firestoreClientGetDocumentsViaSnapshotListener(client, query._query).then((snapshot) => new QuerySnapshot(firestore, userDataWriter, query, snapshot));
+}
 function setDoc(reference, data, options) {
 	reference = cast(reference, DocumentReference);
 	const firestore = cast(reference.firestore, Firestore);
@@ -75688,4 +75891,4 @@ function writeBatch(firestore) {
 */
 registerFirestore("node");
 //#endregion
-export { updateDoc as a, doc as c, setDoc as i, getFirestore as l, deleteDoc as n, writeBatch as o, onSnapshot as r, collection as s, addDoc as t, serverTimestamp as u };
+export { onSnapshot as a, writeBatch as c, getFirestore as d, serverTimestamp as f, getDocs as i, collection as l, deleteDoc as n, setDoc as o, getDoc as r, updateDoc as s, addDoc as t, doc as u };

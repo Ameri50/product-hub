@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { getFirebase } from "@/lib/firebase";
 import { readCachedProducts, writeCachedProducts } from "@/lib/product-cache";
 import { getProductSearchText, normalizeProductData, type Product } from "@/components/ProductForm";
@@ -18,23 +18,28 @@ function CatalogoPage() {
   useEffect(() => {
     const { db } = getFirebase();
     if (!db) return;
+    let cancelled = false;
 
-    const cachedProducts = readCachedProducts();
-    if (cachedProducts.length > 0) {
-      setProducts(cachedProducts);
-      setLoading(false);
-    }
-
-    const unsub = onSnapshot(collection(db, "products"), (snap) => {
-      const items = snap.docs.map((d) => {
-        const raw = { id: d.id, ...(d.data() as Omit<Product, "id">) } as Product;
-        return normalizeProductData(raw);
+    // Lectura única en lugar de onSnapshot: el catálogo público no necesita
+    // tiempo real y así no se mantiene una conexión abierta por visitante.
+    getDocs(collection(db, "products"))
+      .then((snap) => {
+        if (cancelled) return;
+        const items = snap.docs.map((d) => {
+          const raw = { id: d.id, ...(d.data() as Omit<Product, "id">) } as Product;
+          return normalizeProductData(raw);
+        });
+        writeCachedProducts(items);
+        setProducts(items);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
       });
-      writeCachedProducts(items);
-      setProducts(items);
-      setLoading(false);
-    });
-    return unsub;
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const categories = useMemo(
@@ -122,7 +127,13 @@ function CatalogoPage() {
               >
                 <div className="relative h-44 bg-slate-800">
                   {p.image_url ? (
-                    <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                    <img
+                      src={p.image_url}
+                      alt={p.name}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-slate-600 text-sm">
                       Sin imagen

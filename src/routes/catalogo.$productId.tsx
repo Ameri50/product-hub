@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { getFirebase } from "@/lib/firebase";
 import { normalizeProductData, type Product } from "@/components/ProductForm";
 
@@ -15,15 +15,25 @@ function ProductDetailPage() {
   useEffect(() => {
     const { db } = getFirebase();
     if (!db) return;
-    const unsub = onSnapshot(doc(db, "products", productId), (snap) => {
-      if (snap.exists()) {
-        const raw = { id: snap.id, ...(snap.data() as Omit<Product, "id">) } as Product;
-        setProduct(normalizeProductData(raw));
-      } else {
-        setProduct(null);
-      }
-    });
-    return unsub;
+    let cancelled = false;
+
+    getDoc(doc(db, "products", productId))
+      .then((snap) => {
+        if (cancelled) return;
+        if (snap.exists()) {
+          const raw = { id: snap.id, ...(snap.data() as Omit<Product, "id">) } as Product;
+          setProduct(normalizeProductData(raw));
+        } else {
+          setProduct(null);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setProduct(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [productId]);
 
   if (product === undefined) {
@@ -64,7 +74,7 @@ function ProductDetailPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
           <div className="rounded-xl overflow-hidden bg-slate-800 h-80 md:h-full">
             {imageSrc ? (
-              <img src={imageSrc} alt={productName} className="w-full h-full object-cover" />
+              <img src={imageSrc} alt={productName} loading="lazy" decoding="async" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-slate-600">
                 Sin imagen

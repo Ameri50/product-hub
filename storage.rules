@@ -9,16 +9,19 @@ service firebase.storage {
     function isAdmin() {
       return isSignedIn() &&
         request.auth.token.email in [
-          'joshuarojas432@gmail.com'
+          'joshuarojas432@gmail.com',
+          'promo2026@outlook.com',
+          'yo@gmail.com'
         ];
     }
 
     // Imágenes de productos: lectura pública (se muestran en la app y
-    // en la web), escritura solo desde el panel admin. Límite de 10MB
-    // por archivo para evitar subidas abusivas.
+    // en la web). Escritura con cualquier sesión autenticada — la app iOS
+    // sube la foto del producto nuevo antes de crear el documento (su UI
+    // de subida solo la ve el admin). Límite de 10MB por archivo.
     match /products/{allPaths=**} {
       allow read: if true;
-      allow write: if isAdmin() && request.resource.size < 10 * 1024 * 1024;
+      allow write: if isSignedIn() && request.resource.size < 10 * 1024 * 1024;
     }
 
     // Todo lo demás: cerrado por defecto, solo admin.

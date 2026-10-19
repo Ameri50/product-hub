@@ -1,15 +1,15 @@
 import { o as __toESM } from "../_runtime.mjs";
 import "../_libs/firebase.mjs";
-import { c as doc, n as deleteDoc, o as writeBatch, r as onSnapshot, s as collection, u as serverTimestamp } from "../_libs/@firebase/firestore+[...].mjs";
+import { a as onSnapshot, c as writeBatch, f as serverTimestamp, i as getDocs, l as collection, n as deleteDoc, u as doc } from "../_libs/@firebase/firestore+[...].mjs";
 import { t as getFirebase } from "./firebase-nyhvcZA1.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
-import { n as useAuth } from "./auth-context-Dj2eZIgJ.mjs";
+import { n as useAuth } from "./auth-context-CkAUvJTE.mjs";
 import { h as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { n as toast } from "../_libs/sonner.mjs";
 import { _ as LayoutGrid, a as Sparkles, b as Boxes, f as Pencil, g as LoaderCircle, i as Tag, l as Search, m as LogOut, n as Users, o as ShoppingBag, p as Package, r as Trash2, v as ImageOff, y as DatabaseZap } from "../_libs/lucide-react.mjs";
 import { a as normalizeProductData, i as getProductSearchText, o as removeProductInList, r as dispatchProductRemoved, s as upsertProductInList, t as ProductForm } from "./ProductForm-BH1sAVMJ.mjs";
 import { n as writeCachedProducts, t as readCachedProducts } from "./product-cache-DsASDscr.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/Dashboard-BgwRf1IN.js
+//#region node_modules/.nitro/vite/services/ssr/assets/Dashboard-Cop7Xrx8.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var ProductCard = (0, import_react.memo)(function ProductCard({ product, onEdit, onRemove, deleting }) {
@@ -440,12 +440,12 @@ var S = {
 		priceMultiplier: 3.2
 	}
 };
-function product(name, price, category, description, colors, storages, stock = 50) {
+function product(name, price, category, description, colors, storages, stock = 50, imageUrl = "") {
 	return {
 		name,
 		price,
 		category,
-		image_url: "",
+		image_url: imageUrl,
 		description,
 		stock,
 		colorOptions: colors,
@@ -453,11 +453,14 @@ function product(name, price, category, description, colors, storages, stock = 5
 	};
 }
 var iPhones = [
-	product("iPhone 17e", 2199, "iPhone", "El iPhone más accesible de la familia 17. Pantalla OLED de 6.1\", chip A19 con módem C1X integrado, cámara 48 MP Fusion con 4K Dolby Vision y soporte MagSafe.", [
-		C.negro,
+	product("iPhone 17e", 1699, "iPhone", "Real (apple.com/mx, precio base $16,999 MXN). El iPhone más accesible de la familia. Pantalla OLED de 6.1\", chip A19, cámara 48 MP Fusion, Dynamic Island y módem C1 integrado.", [
+		{
+			name: "Rosa pálido",
+			hexColor: "#F2C9CE"
+		},
 		C.blanco,
-		C.rosa
-	], [S.g128, S.g256]),
+		C.negro
+	], [S.g128, S.g256], 50, "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-17e-finish-select-black-202603_SW_COLOR?wid=800&hei=800&fmt=png-alpha"),
 	product("iPhone 17 Pro Max", 4999, "iPhone", "El iPhone más potente. Pantalla Super Retina XDR de 6.9\" ProMotion 120 Hz, chip A19 Pro, triple cámara 48 MP con zoom óptico 5×, chasis de titanio aeroespacial.", [
 		C.titNegro,
 		C.titBlanco,
@@ -479,23 +482,45 @@ var iPhones = [
 		S.g512,
 		S.t1
 	]),
-	product("iPhone Air", 4199, "iPhone", "El iPhone más delgado de la historia (5.6 mm). Pantalla OLED de 6.6\", chip A19, cámara 48 MP Fusion. Chasis de aluminio aeroespacial ultraligero.", [
-		C.azulCielo,
+	product("iPhone Air", 2599, "iPhone", "Real (apple.com/mx, precio base $25,999 MXN). El iPhone más delgado de la historia (5.6 mm). Pantalla OLED de 6.6\", chip A19, cámara Fusion 48 MP, módem C1X. Chasis de titanio ultraligero.", [
+		{
+			name: "Azul Cielo",
+			hexColor: "#AFCBDD"
+		},
+		{
+			name: "Oro Claro",
+			hexColor: "#E7D5B7"
+		},
+		{
+			name: "Blanco Nube",
+			hexColor: "#F2F1EC"
+		},
+		C.negroEspacial
+	], [
+		S.g256,
+		S.g512,
+		S.t1
+	], 50, "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-air-finish-select-spaceblack-202509_SW_COLOR?wid=800&hei=800&fmt=png-alpha"),
+	product("iPhone 17", 2199, "iPhone", "Real (apple.com/mx, precio base $21,999 MXN). Pantalla OLED de 6.3\" ProMotion 120 Hz con Always-On Display, chip A19, cámara dual 48 MP Fusion. El mejor valor de la gama actual.", [
+		{
+			name: "Lavanda",
+			hexColor: "#D9CFEA"
+		},
+		{
+			name: "Salvia",
+			hexColor: "#B9C6AE"
+		},
+		{
+			name: "Azul Neblina",
+			hexColor: "#AEC2D6"
+		},
 		C.blanco,
-		C.negro,
-		C.rosa
-	], [S.g256, S.g512]),
-	product("iPhone 17", 3199, "iPhone", "Pantalla OLED de 6.3\" ProMotion 120 Hz con Always-On Display, chip A19, cámara dual 48 MP. El mejor valor de la gama actual.", [
-		C.negro,
-		C.blanco,
-		C.ultramarino,
-		C.rosa,
-		C.verde
+		C.negro
 	], [
 		S.g128,
 		S.g256,
 		S.g512
-	]),
+	], 50, "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-17-finish-select-black-202509_SW_COLOR?wid=800&hei=800&fmt=png-alpha"),
 	product("iPhone 16 Pro Max", 4700, "iPhone", "Pantalla Super Retina XDR de 6.9\" ProMotion 120 Hz, chip A18 Pro, triple cámara 48 MP con zoom óptico 5×. Camera Control físico. Titanio grado 5.", [
 		C.titNegro,
 		C.titBlanco,
@@ -528,7 +553,7 @@ var iPhones = [
 		S.g256,
 		S.g512
 	]),
-	product("iPhone 16", 2900, "iPhone", "Pantalla OLED de 6.1\", chip A18 y Camera Control. Dynamic Island. Compatible con Apple Intelligence.", [
+	product("iPhone 16", 1899, "iPhone", "Real (apple.com/mx, precio base $18,999 MXN). Pantalla OLED de 6.1\", chip A18 y Camera Control. Dynamic Island. Compatible con Apple Intelligence.", [
 		C.negro,
 		C.blanco,
 		C.rosa,
@@ -538,7 +563,7 @@ var iPhones = [
 		S.g128,
 		S.g256,
 		S.g512
-	]),
+	], 50, "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-16-black-select-202409_SW_COLOR?wid=800&hei=800&fmt=png-alpha"),
 	product("iPhone 16e", 2119, "iPhone", "Opción de entrada con chip A18 y Apple Intelligence. Pantalla OLED de 6.1\", cámara 48 MP Fusion, Dynamic Island. Módem C1 integrado.", [C.negro, C.blanco], [
 		S.g128,
 		S.g256,
@@ -736,7 +761,7 @@ var iPads = [
 		S.t1,
 		S.t2
 	]),
-	product("iPad Air 11\" M2", 3950, "iPad", "Pantalla Liquid Retina de 11\". Chip M2. Compatible con Apple Pencil Pro y Magic Keyboard. Wi-Fi 6E.", [
+	product("iPad Air 11\" M2", 3950, "iPad", "Pantalla Liquid Retina de 11\". Chip M2. Compatible con Apple Pencil Pro y Magic Keyboard. Wi-Fi 6E. (Nota: el iPad Air actual en apple.com/mx ya trae chip M4, precio base $18,799 MXN)", [
 		C.azul,
 		C.morado,
 		C.luzEstelar,
@@ -746,7 +771,7 @@ var iPads = [
 		S.g256,
 		S.g512,
 		S.t1
-	]),
+	], 50, "https://www.apple.com/v/ipad-air/ah/images/overview/hero/hero_endframe__6gl84bccyaqi_medium.png"),
 	product("iPad Air 13\" M2", 4150, "iPad", "Pantalla Liquid Retina de 13\". Chip M2. Primera iPad Air de 13\". Wi-Fi 6E y Magic Keyboard compatible.", [
 		C.azul,
 		C.morado,
@@ -757,7 +782,7 @@ var iPads = [
 		S.g512,
 		S.t1
 	]),
-	product("iPad mini 7", 2675, "iPad", "Pantalla Liquid Retina de 8.3\". Chip A17 Pro. Compatible con Apple Pencil Pro. El mini más potente.", [
+	product("iPad mini 7", 2675, "iPad", "Real (apple.com/mx, precio base $14,499 MXN). Pantalla Liquid Retina de 8.3\". Chip A17 Pro. Compatible con Apple Pencil Pro. El mini más potente.", [
 		C.azul,
 		C.morado,
 		C.luzEstelar,
@@ -766,7 +791,7 @@ var iPads = [
 		S.g128,
 		S.g256,
 		S.g512
-	]),
+	], 50, "https://www.apple.com/v/ipad-mini/v/images/overview/hero/landscape__gxui1v022sae_medium.png"),
 	product("iPad Pro 12.9\" M2", 5087, "iPad", "Pantalla Liquid Retina XDR de 12.9\" con miniLED. Chip M2. ProMotion 120 Hz. Compatible con Apple Pencil 2ª gen.", [C.plata, C.grisEspacial], [
 		S.g128,
 		S.g256,
@@ -781,12 +806,12 @@ var iPads = [
 		S.t1,
 		S.t2
 	]),
-	product("iPad 10ª Gen", 1871, "iPad", "Pantalla Liquid Retina de 10.9\". Chip A14 Bionic. Diseño de bordes planos con USB-C. Compatible con Apple Pencil USB-C.", [
+	product("iPad 10ª Gen", 1871, "iPad", "Pantalla Liquid Retina de 10.9\". Chip A14 Bionic. Diseño de bordes planos con USB-C. Compatible con Apple Pencil USB-C. (El iPad actual, con chip A16, cuesta desde $10,999 MXN en apple.com/mx)", [
 		C.azul,
 		C.rosa,
 		C.amarillo,
 		C.plata
-	], [S.g64, S.g256]),
+	], [S.g64, S.g256], 50, "https://www.apple.com/mx/ipad-11/images/overview/hero/hero__crzh9misvcuq_medium.jpg"),
 	product("iPad 9ª Gen", 1495, "iPad", "Pantalla Retina de 10.2\". Chip A13 Bionic. Botón de inicio con Touch ID y Lightning. El iPad de entrada más popular.", [C.grisEspacial, C.plata], [S.g64, S.g256]),
 	product("iPad mini 6", 2407, "iPad", "Pantalla Liquid Retina de 8.3\". Chip A15 Bionic. Rediseño total con Touch ID lateral y USB-C. Compatible con Apple Pencil 2ª gen.", [
 		C.grisEspacial,
@@ -889,11 +914,11 @@ var macs = [
 		S.t2
 	]),
 	product("Mac mini M4", 3747, "Mac", "Mac mini con chip M4, 16 GB RAM. El Mac más pequeño de la historia. Thunderbolt 4. Precio de entrada histórico.", [C.plata], [S.g256, S.g512]),
-	product("Mac Studio M4 Max", 21435, "Mac", "Rendimiento extremo. Chip M4 Max, 36 GB RAM unificada. Thunderbolt 5. Para videófilos, músicos y diseñadores 3D.", [C.plata], [
+	product("Mac Studio M4 Max", 21435, "Mac", "Rendimiento extremo. Chip M4 Max, 36 GB RAM unificada. Thunderbolt 5. Para videófilos, músicos y diseñadores 3D. (El Mac Studio actual ya trae chips M5 Max/M5 Ultra, desde $57,999 MXN)", [C.plata], [
 		S.g512,
 		S.t1,
 		S.t2
-	]),
+	], 50, "https://www.apple.com/v/mac-studio/n/images/overview/hero/static_front__fmvxob6uyxiu_medium.jpg"),
 	product("Mac Pro M4 Ultra", 42876, "Mac", "El Mac más potente. Chip M4 Ultra, hasta 192 GB RAM unificada. Para rendering industrial, ML y postproducción.", [C.plata], [
 		S.t1,
 		S.t2,
@@ -981,18 +1006,39 @@ var macs = [
 	])
 ];
 var watches = [
-	product("Apple Watch Series 11", 2350, "Apple Watch", "[Especulativo 2025] Sucesor del Series 10. Detección de apnea del sueño mejorada, sensores de salud avanzados y chip S11.", [
-		C.medianoche,
-		C.luzEstelar,
-		C.rosa,
-		C.plata
+	product("Apple Watch Series 12", 899, "Apple Watch", "Real (apple.com/mx, precio base $8,999 MXN). Nuevo sistema de registro de datos de salud (frecuencia cardíaca más precisa en un wearable), app Disposición, VFC de Recuperación y chip S11 con Siri AI. Caja de aluminio, titanio o cerámica de 46 mm o 42 mm.", [
+		{
+			name: "Bronce Oscuro",
+			hexColor: "#6B4A3A"
+		},
+		{
+			name: "Oro Claro",
+			hexColor: "#E7D5B7"
+		},
+		C.negro,
+		C.grisEspacial,
+		{
+			name: "Oro Radiante",
+			hexColor: "#D9B36C"
+		},
+		C.titNatural,
+		{
+			name: "Blanco Perla",
+			hexColor: "#EDEAE3"
+		},
+		{
+			name: "Azul Noche",
+			hexColor: "#2C3A52"
+		}
 	], []),
-	product("Apple Watch Ultra 3", 4600, "Apple Watch", "[Especulativo 2025] Sucesor del Ultra 2. Titanio, resistencia extrema certificada, batería de 3+ días y nuevos sensores de salud.", [C.titNatural], []),
-	product("Apple Watch SE 3", 1450, "Apple Watch", "[Especulativo 2025] Sucesor del SE 2. Fitness esencial con GPS, Crash Detection y chip S9 actualizado.", [
-		C.medianoche,
-		C.luzEstelar,
-		C.plata
-	], []),
+	product("Apple Watch Ultra 4", 1999, "Apple Watch", "Real (apple.com/mx, precio base $19,999 MXN). Caja de titanio de 49 mm. Hasta 50 h de batería en uso normal y 45 h de registro de Entrenamiento Prolongado Máximo. Chip S11 con Siri AI y comunicación satelital.", [C.titNatural, {
+		name: "Titanio Negro",
+		hexColor: "#2C2C2E"
+	}], []),
+	product("Apple Watch SE 3", 549, "Apple Watch", "Real (apple.com/mx, precio base $5,499 MXN). Funcionalidades esenciales de salud: Puntuación de Sueño, Control del Ciclo y app ECG. Chip S10 con Siri AI. Hasta 18 h de batería.", [C.medianoche, {
+		name: "Blanco Estelar",
+		hexColor: "#F0EDE4"
+	}], []),
 	product("Apple Watch Series 10", 2139, "Apple Watch", "La pantalla más grande y delgada del Apple Watch. Detección de apnea del sueño. Carga ultrarrápida. Chip S10.", [
 		C.plata,
 		C.negro,
@@ -1042,10 +1088,11 @@ var watches = [
 	product("Apple Watch Hermès Series 8", 4283, "Apple Watch", "Edición Hermès con Series 8. Acero inoxidable y correas de cuero artesanal francés.", [C.plata], [])
 ];
 var airpods = [
-	product("AirPods Pro 3", 1335, "AirPods", "[Especulativo 2025] Sucesor de los AirPods Pro 2. Chip H3, sensores de salud auditiva mejorados y cancelación de ruido de tercera generación.", [C.blanco], []),
+	product("AirPods Pro 3", 529, "AirPods", "Real (apple.com/mx, precio base $5,299 MXN). La mejor Cancelación Activa de Ruido del mundo en audio internos, con detección de la frecuencia cardíaca al entrenar. Chip H2, Traducción en Vivo y Siri AI. Hasta 8 h de batería. Clasificación IP57.", [C.blanco], []),
 	product("AirPods Pro 2 USB-C", 1227, "AirPods", "Cancelación activa de ruido H2. Audio Adaptivo y Volumen Adaptivo. Estuche USB-C con MagSafe. Modo Transparencia conversacional.", [C.blanco], []),
 	product("AirPods Pro 2 Lightning", 1335, "AirPods", "Cancelación activa de ruido de segunda generación. Chip H2. Audio Espacial Personalizado. Estuche con altavoz y correa.", [C.blanco], []),
-	product("AirPods Max USB-C", 2943, "AirPods", "Auriculares over-ear premium con cancelación activa de ruido. Puerto USB-C. Audio Espacial dinámico. Malla de tela y aluminio anodizado.", [
+	product("AirPods 5", 299, "AirPods", "Real (apple.com/mx, precio base $2,999 MXN sin estuche inalámbrico / $3,299 con él). Cancelación Activa de Ruido, chip H2, Audio Espacial personalizado, Traducción en Vivo y Siri AI. Clasificación IP57.", [C.blanco], []),
+	product("AirPods Max 2", 1249, "AirPods", "Real (apple.com/mx, precio base $12,499 MXN). Auriculares over-ear con hasta 1.5 veces más Cancelación Activa de Ruido que la generación anterior. Chip H2, Audio Lossless por USB-C, Digital Crown y Siri AI. Hasta 20 h de batería.", [
 		C.azulMedianoche,
 		C.luzEstelar,
 		C.verde,
@@ -1199,7 +1246,7 @@ function SeedCatalogButton() {
 	const [seeding, setSeeding] = (0, import_react.useState)(false);
 	const [progress, setProgress] = (0, import_react.useState)(null);
 	const runSeed = async () => {
-		if (!window.confirm(`Esto va a agregar ${appleProductsSeed.length} productos nuevos a Firestore (no borra los existentes, ni evita duplicados si ya sembraste antes). ¿Continuar?`)) return;
+		if (!window.confirm(`Esto agrega/actualiza ${appleProductsSeed.length} productos en Firestore. Los que ya existan (mismo nombre) se actualizan en su lugar, sin duplicarlos. ¿Continuar?`)) return;
 		const { db } = getFirebase();
 		if (!db) {
 			toast.error("Firestore no está disponible");
@@ -1208,11 +1255,19 @@ function SeedCatalogButton() {
 		setSeeding(true);
 		let written = 0;
 		try {
+			const productsRef = collection(db, "products");
+			const existingSnap = await getDocs(productsRef);
+			const existingIdByName = /* @__PURE__ */ new Map();
+			existingSnap.forEach((docSnap) => {
+				const name = docSnap.data().name;
+				if (name && !existingIdByName.has(name)) existingIdByName.set(name, docSnap.id);
+			});
 			for (let i = 0; i < appleProductsSeed.length; i += BATCH_SIZE) {
 				const chunk = appleProductsSeed.slice(i, i + BATCH_SIZE);
 				const batch = writeBatch(db);
 				for (const p of chunk) {
-					const ref = doc(collection(db, "products"));
+					const existingId = existingIdByName.get(p.name);
+					const ref = existingId ? doc(db, "products", existingId) : doc(productsRef);
 					batch.set(ref, {
 						name: p.name,
 						price: p.price,
@@ -1226,13 +1281,13 @@ function SeedCatalogButton() {
 						storageOptions: p.storageOptions,
 						storages: p.storageOptions,
 						created_at: serverTimestamp()
-					});
+					}, { merge: true });
 				}
 				await batch.commit();
 				written += chunk.length;
 				setProgress(`${written} / ${appleProductsSeed.length}`);
 			}
-			toast.success(`Catálogo sembrado: ${written} productos agregados`);
+			toast.success(`Catálogo sembrado/actualizado: ${written} productos`);
 		} catch (err) {
 			toast.error(err instanceof Error ? err.message : "Error al sembrar el catálogo");
 		} finally {
@@ -1245,8 +1300,8 @@ function SeedCatalogButton() {
 		onClick: runSeed,
 		disabled: seeding,
 		className: "inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/60 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition disabled:opacity-60",
-		title: `Agrega los ${appleProductsSeed.length} productos del catálogo Apple a Firestore`,
-		children: [seeding ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoaderCircle, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DatabaseZap, { className: "h-4 w-4" }), seeding ? progress ?? "Sembrando..." : "Sembrar catálogo completo"]
+		title: `Agrega o actualiza (por nombre) los ${appleProductsSeed.length} productos del catálogo Apple en Firestore`,
+		children: [seeding ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoaderCircle, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DatabaseZap, { className: "h-4 w-4" }), seeding ? progress ?? "Sembrando..." : "Sembrar / actualizar catálogo"]
 	});
 }
 function Dashboard() {

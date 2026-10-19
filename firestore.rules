@@ -11,7 +11,9 @@ service cloud.firestore {
     function isAdmin() {
       return isSignedIn() &&
         request.auth.token.email in [
-          'joshuarojas432@gmail.com'
+          'joshuarojas432@gmail.com',
+          'promo2026@outlook.com',
+          'yo@gmail.com'
         ];
     }
 
@@ -20,10 +22,13 @@ service cloud.firestore {
     }
 
     // Catálogo: lectura pública (lo consume la app iOS y la web sin
-    // login), escritura solo desde el panel admin autenticado.
+    // login). Creación: cualquier usuario autenticado — la app iOS sube
+    // productos con la sesión del admin de la app (UI restringida a admins,
+    // ver adminEmails en userManager.swift). Edición/borrado: solo admin web.
     match /products/{productId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
     }
 
     // Perfiles de usuario: cada usuario solo puede leer/escribir el suyo.

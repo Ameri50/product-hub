@@ -1,9 +1,9 @@
 import { o as __toESM } from "../_runtime.mjs";
 import { n as require_jsx_runtime, r as require_react, t as QueryClientProvider } from "../_libs/react+tanstack__react-query.mjs";
 import { c as HeadContent, d as Outlet, f as lazyRouteComponent, g as useRouter, h as Link, m as createRootRouteWithContext, p as createFileRoute, s as Scripts, u as createRouter } from "../_libs/@tanstack/react-router+[...].mjs";
-import { t as Route$6 } from "./catalogo._productId-BQa841od.mjs";
+import { t as Route$6 } from "./catalogo._productId-C4VKsBqS.mjs";
 import { t as QueryClient } from "../_libs/tanstack__query-core.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/router-CVoEibh_.js
+//#region node_modules/.nitro/vite/services/ssr/assets/router-CDFZX4v6.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var styles_default = "/assets/styles-BeP7y2lf.css";
@@ -158,7 +158,7 @@ function RootComponent() {
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Outlet, {})
 	});
 }
-var $$splitComponentImporter$4 = () => import("./routes-BQ4HRmky.mjs");
+var $$splitComponentImporter$4 = () => import("./routes-DUgJotfh.mjs");
 var Route$4 = createFileRoute("/")({
 	head: () => ({ meta: [
 		{ title: "Admin de Productos | Panel" },
@@ -185,7 +185,7 @@ var Route$4 = createFileRoute("/")({
 	] }),
 	component: lazyRouteComponent($$splitComponentImporter$4, "component")
 });
-var $$splitComponentImporter$3 = () => import("./catalogo-7LKfPqu8.mjs");
+var $$splitComponentImporter$3 = () => import("./catalogo-b14afuka.mjs");
 var Route$3 = createFileRoute("/catalogo")({ component: lazyRouteComponent($$splitComponentImporter$3, "component") });
 var $$splitComponentImporter$2 = () => import("./pedidos-BaQLLCJW.mjs");
 var Route$2 = createFileRoute("/pedidos")({ component: lazyRouteComponent($$splitComponentImporter$2, "component") });
