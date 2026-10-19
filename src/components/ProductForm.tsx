@@ -291,11 +291,11 @@ export function ProductForm({
         </Field>
         <Field label="URL de imagen" className="md:col-span-2">
           <input
-            type="url"
+            type="text"
             value={form.image_url}
             onChange={(e) => setForm({ ...form, image_url: e.target.value })}
             className={inputCls}
-            placeholder="https://..."
+            placeholder="https://... o /assets/iphone1.jpg"
           />
           <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
             Se muestra bien en la lista de productos (RemoteOrLocalImage soporta URLs). En la pantalla de
