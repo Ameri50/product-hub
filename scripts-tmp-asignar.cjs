@@ -352,8 +352,8 @@ function puntuar(item, p, t, tipo) {
     if (/beats|airpod/.test(s)) puntos -= 45;
   }
   if (tipo === "acc-wallet" || tipo === "acc-carmount") {
-    if (/magsafe/.test(s)) puntos += 22;
-    if (/airpod|beats|charging case/.test(s)) puntos -= 45;
+    if (/magsafe/.test(s)) puntos += 42;
+    if (/airpod|beats|charging case|airtag/.test(s)) puntos -= 45;
   }
   if (tipo === "acc-vesa") {
     if (/vesa/.test(s)) puntos += 30;
@@ -373,6 +373,26 @@ async function headOK(url) {
 
 (async () => {
   const pool = JSON.parse(fs.readFileSync("/tmp/apple-pool-crudo.json", "utf8"));
+  // tiles oficiales de la tienda de accesorios (foto real de producto, por número de parte)
+  const tiles = JSON.parse(fs.readFileSync("/tmp/apple-tiles.json", "utf8"));
+  const TILE_MAP = [
+    [/^iphone leather case$/, "MKD14"],
+    [/^iphone silicone case$/, "MK944"],
+    [/^iphone clear case$/, "MKDU4"],
+    [/^magsafe wallet$/, "MK9K4"],
+    [/^magsafe car mount$/, "HRX72"],
+    [/^usb c power adapter$/, "MD3J4"],
+    [/cargador usb c 30/, "HS9R2"],
+    [/cargador usb c 67/, "MGTU4"],
+    [/cable usb c a usb c/, "MDGE4"],
+    [/^usb c cable$/, "HSJY2"],
+  ];
+  const slugsTile = new Set(TILE_MAP.map(([, s]) => s));
+  const tilePara = (p) => {
+    const n = norm(p.name || "");
+    for (const [re, slug] of TILE_MAP) if (re.test(n)) return tiles.find((t) => t.slug === slug && !usadosPool.has(t.slug));
+    return null;
+  };
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   await signInWithEmailAndPassword(auth, "yo@gmail.com", "moises2004");
@@ -403,7 +423,7 @@ async function headOK(url) {
   const docSinNombre = productos.find((p) => !norm(p.name) && (p.category === "Electrónica" || p.category === "electronics"));
   console.log("A reasignar:", reasignar.length);
 
-  const disponibles = pool.filter((it) => !usadas.has(it.url));
+  const disponibles = pool.filter((it) => !usadas.has(it.url) && ![...slugsTile].some((s) => it.slug === s || it.slug.startsWith(s + "_")));
   const usadosPool = new Set();
   const asignaciones = [];
   const sinAsignar = [];
@@ -422,6 +442,12 @@ async function headOK(url) {
   };
 
   for (const { p, t, tipo } of conInfo) {
+    const tile = tilePara(p);
+    if (tile) {
+      usadosPool.add(tile.slug);
+      asignaciones.push({ id: p.id, nombre: p.name, categoria: p.category, tipo: tipo + "-tile", de: (p.image_url || "").toString().slice(0, 50), a: tile.url, slug: tile.slug, puntos: 200 });
+      continue;
+    }
     const todos = disponibles.filter((it) => !usadosPool.has(it.slug)).map((it) => ({ it, puntos: puntuar(it, p, t, tipo) }));
 
     // nivel 1: gate estricto
