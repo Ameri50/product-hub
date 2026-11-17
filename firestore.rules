@@ -37,14 +37,16 @@ service cloud.firestore {
       allow read, write: if isOwner(userId) || isAdmin();
     }
 
-    // Pedidos: cualquier usuario autenticado puede crear el suyo.
-    // NOTA: ajusta "resource.data.uid" al nombre real del campo que usas
-    // en el documento de la orden para identificar al dueño (uid del
-    // usuario) en tu app iOS. Mientras tanto, solo el admin puede leer
-    // o modificar pedidos ya creados, para no dejar la colección abierta.
+    // Pedidos / reservaciones: cada usuario autenticado crea y administra
+    // solo los suyos (campo userUid). El admin del panel web puede leer y
+    // modificar todos para gestionar el historial.
     match /orders/{orderId} {
-      allow create: if isSignedIn();
-      allow read, update, delete: if isAdmin();
+      allow create: if isSignedIn() && request.resource.data.userUid == request.auth.uid;
+      allow read, delete: if isAdmin() || (isSignedIn() && resource.data.userUid == request.auth.uid);
+      allow update: if isAdmin() ||
+        (isSignedIn() &&
+          resource.data.userUid == request.auth.uid &&
+          request.resource.data.userUid == resource.data.userUid);
     }
 
     // Todo lo demás: cerrado por defecto, solo admin.

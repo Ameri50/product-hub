@@ -11,7 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CatalogoRouteImport } from './routes/catalogo'
-import { Route as PedidosRouteImport } from './routes/pedidos'
+import { Route as HistorialRouteImport } from './routes/historial'
 import { Route as ProductosSinImagenRouteImport } from './routes/productos-sin-imagen'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as CatalogoProductIdRouteImport } from './routes/catalogo.$productId'
@@ -26,9 +26,9 @@ const CatalogoRoute = CatalogoRouteImport.update({
   path: '/catalogo',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PedidosRoute = PedidosRouteImport.update({
-  id: '/pedidos',
-  path: '/pedidos',
+const HistorialRoute = HistorialRouteImport.update({
+  id: '/historial',
+  path: '/historial',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductosSinImagenRoute = ProductosSinImagenRouteImport.update({
@@ -50,7 +50,7 @@ const CatalogoProductIdRoute = CatalogoProductIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/catalogo': typeof CatalogoRouteWithChildren
-  '/pedidos': typeof PedidosRoute
+  '/historial': typeof HistorialRoute
   '/productos-sin-imagen': typeof ProductosSinImagenRoute
   '/usuarios': typeof UsuariosRoute
   '/catalogo/$productId': typeof CatalogoProductIdRoute
@@ -58,7 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/catalogo': typeof CatalogoRouteWithChildren
-  '/pedidos': typeof PedidosRoute
+  '/historial': typeof HistorialRoute
   '/productos-sin-imagen': typeof ProductosSinImagenRoute
   '/usuarios': typeof UsuariosRoute
   '/catalogo/$productId': typeof CatalogoProductIdRoute
@@ -67,7 +67,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/catalogo': typeof CatalogoRouteWithChildren
-  '/pedidos': typeof PedidosRoute
+  '/historial': typeof HistorialRoute
   '/productos-sin-imagen': typeof ProductosSinImagenRoute
   '/usuarios': typeof UsuariosRoute
   '/catalogo/$productId': typeof CatalogoProductIdRoute
@@ -77,7 +77,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/catalogo'
-    | '/pedidos'
+    | '/historial'
     | '/productos-sin-imagen'
     | '/usuarios'
     | '/catalogo/$productId'
@@ -85,7 +85,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/catalogo'
-    | '/pedidos'
+    | '/historial'
     | '/productos-sin-imagen'
     | '/usuarios'
     | '/catalogo/$productId'
@@ -93,7 +93,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/catalogo'
-    | '/pedidos'
+    | '/historial'
     | '/productos-sin-imagen'
     | '/usuarios'
     | '/catalogo/$productId'
@@ -102,7 +102,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CatalogoRoute: typeof CatalogoRouteWithChildren
-  PedidosRoute: typeof PedidosRoute
+  HistorialRoute: typeof HistorialRoute
   ProductosSinImagenRoute: typeof ProductosSinImagenRoute
   UsuariosRoute: typeof UsuariosRoute
 }
@@ -123,11 +123,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CatalogoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pedidos': {
-      id: '/pedidos'
-      path: '/pedidos'
-      fullPath: '/pedidos'
-      preLoaderRoute: typeof PedidosRouteImport
+    '/historial': {
+      id: '/historial'
+      path: '/historial'
+      fullPath: '/historial'
+      preLoaderRoute: typeof HistorialRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/productos-sin-imagen': {
@@ -169,7 +169,7 @@ const CatalogoRouteWithChildren = CatalogoRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CatalogoRoute: CatalogoRouteWithChildren,
-  PedidosRoute: PedidosRoute,
+  HistorialRoute: HistorialRoute,
   ProductosSinImagenRoute: ProductosSinImagenRoute,
   UsuariosRoute: UsuariosRoute,
 }
