@@ -37,11 +37,13 @@ service cloud.firestore {
       allow read, write: if isOwner(userId) || isAdmin();
     }
 
-    // Pedidos / reservaciones: cada usuario autenticado crea y administra
-    // solo los suyos (campo userUid). El admin del panel web puede leer y
-    // modificar todos para gestionar el historial.
+    // Pedidos / reservaciones: cada usuario autenticado crea los suyos y
+    // administra solo los que tienen su uid en `userUid`. El admin del panel
+    // web puede leer y modificar todos para gestionar el historial.
+    // La creación se deja abierta a cualquier sesión porque la pantalla de
+    // pago de la app iOS guarda pedidos sin `userUid`.
     match /orders/{orderId} {
-      allow create: if isSignedIn() && request.resource.data.userUid == request.auth.uid;
+      allow create: if isSignedIn();
       allow read, delete: if isAdmin() || (isSignedIn() && resource.data.userUid == request.auth.uid);
       allow update: if isAdmin() ||
         (isSignedIn() &&
