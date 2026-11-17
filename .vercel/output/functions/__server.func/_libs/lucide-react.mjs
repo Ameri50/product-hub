@@ -184,6 +184,66 @@ var Boxes = createLucideIcon("boxes", [
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
+var Check = createLucideIcon("check", [["path", {
+	d: "M20 6 9 17l-5-5",
+	key: "1gmf2c"
+}]]);
+/**
+* @license lucide-react v0.575.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var Clock = createLucideIcon("clock", [["circle", {
+	cx: "12",
+	cy: "12",
+	r: "10",
+	key: "1mglay"
+}], ["path", {
+	d: "M12 6v6l4 2",
+	key: "mmk7yg"
+}]]);
+/**
+* @license lucide-react v0.575.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var CopyX = createLucideIcon("copy-x", [
+	["line", {
+		x1: "12",
+		x2: "18",
+		y1: "12",
+		y2: "18",
+		key: "1rg63v"
+	}],
+	["line", {
+		x1: "12",
+		x2: "18",
+		y1: "18",
+		y2: "12",
+		key: "ebkxgr"
+	}],
+	["rect", {
+		width: "14",
+		height: "14",
+		x: "8",
+		y: "8",
+		rx: "2",
+		ry: "2",
+		key: "17jyea"
+	}],
+	["path", {
+		d: "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2",
+		key: "zix9uf"
+	}]
+]);
+/**
+* @license lucide-react v0.575.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
 var DatabaseZap = createLucideIcon("database-zap", [
 	["ellipse", {
 		cx: "12",
@@ -207,6 +267,26 @@ var DatabaseZap = createLucideIcon("database-zap", [
 	["path", {
 		d: "M3 12A9 3 0 0 0 14.59 14.87",
 		key: "1y4wr8"
+	}]
+]);
+/**
+* @license lucide-react v0.575.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var History = createLucideIcon("history", [
+	["path", {
+		d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8",
+		key: "1357e3"
+	}],
+	["path", {
+		d: "M3 3v5h5",
+		key: "1xhq8a"
+	}],
+	["path", {
+		d: "M12 7v5l4 2",
+		key: "1fdv2h"
 	}]
 ]);
 /**
@@ -588,4 +668,4 @@ var X = createLucideIcon("x", [["path", {
 	key: "d8bk6v"
 }]]);
 //#endregion
-export { LayoutGrid as _, Sparkles as a, Boxes as b, ShieldAlert as c, Plus as d, Pencil as f, LoaderCircle as g, LogIn as h, Tag as i, Search as l, LogOut as m, Users as n, ShoppingBag as o, Package as p, Trash2 as r, ShieldCheck as s, X as t, Save as u, ImageOff as v, ArrowLeft as x, DatabaseZap as y };
+export { Check as C, Clock as S, ArrowLeft as T, LayoutGrid as _, Sparkles as a, DatabaseZap as b, ShieldAlert as c, Plus as d, Pencil as f, LoaderCircle as g, LogIn as h, Tag as i, Search as l, LogOut as m, Users as n, ShoppingBag as o, Package as p, Trash2 as r, ShieldCheck as s, X as t, Save as u, ImageOff as v, Boxes as w, CopyX as x, History as y };
